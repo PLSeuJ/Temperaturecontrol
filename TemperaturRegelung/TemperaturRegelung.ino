@@ -8,7 +8,7 @@
 //
 // for an english version contact the author please.
 //
-// Das Sketch ist für einen Arduino Nano geschrieben.
+// Der Sketch ist für einen Arduino Nano geschrieben.
 // Über ein an Pin 7 angesteuertes Relay wird eine Heitzung betrieben;
 // die Ein- und Ausschaltung der Heitzung erfolgt, sobalt die an Pin D2 gemessene Temperatur,
 // außerhalb des Temperaturbereichs (Soll +- Delta) liegt.
@@ -29,8 +29,6 @@ DallasTemperature sensors(&oneWire);
 
 const int SensorPin     = 2; // Digital Pin für digitales Eingangssignal
 // chnage following button to 
-const int UpButtonPin   = 3; // Digital Pin für digitales Eingangssignal
-const int DownButtonPin = 4; // Digital Pin für digitales Eingangssignal
 const int PowerPin      = 7; // Digital Pin für digitales Ausgangssignal
 //const int OkButtonPin  = 6; // Digital Pin for confirmation of selcted item
 
@@ -49,6 +47,48 @@ float Delta = 0.5; // Abweichungstolleranz von Solltemperatur
 
 float dtLampe = 60000; // Ruhezeit Lampe = min × sek/min × msek/sek  
 
+
+class Button {
+  private:
+    byte pin;
+    byte state;
+    byte lastReading;
+    unsigned long lastDebounceTime = 0;
+    unsigned long debounceDelay = 50;
+  public:
+    Button(byte pin) {
+      this->pin = pin;
+      lastReading = LOW;
+      init();
+    }
+    void init() {
+      pinMode(pin, INPUT);
+      update();
+    }
+    void update() {
+      // You can handle the debounce of the button directly
+      // in the class, so you don't have to think about it
+      // elsewhere in your code
+      byte newReading = digitalRead(pin);
+      
+      if (newReading != lastReading) {
+        lastDebounceTime = millis();
+      }
+      if (millis() - lastDebounceTime > debounceDelay) {
+        // Update the 'state' attribute only if debounce is checked
+        state = newReading;
+      }
+      lastReading = newReading;
+    }
+    byte getState() {
+      update();
+      return state;
+    }
+    bool isPressed() {
+      return (getState() == HIGH);
+    }
+}; // don't forget the semicolon at the end of the class
+
 //Programm start
 void setup()
  {
@@ -62,9 +102,12 @@ void setup()
   lcd.print("Start");
   lcd.noBlink();
 
+  Button UpButton(3);
+  Button DownButton(4);
+  // Button OkButton();
+  // Button CancelButton();
+
   pinMode(SensorPin, INPUT);
-  pinMode(UpButtonPin, INPUT_PULLUP);  
-  pinMode(DownButtonPin, INPUT_PULLUP);  
   pinMode(PowerPin, OUTPUT);
   pinMode(PowerPin, LOW);
 
