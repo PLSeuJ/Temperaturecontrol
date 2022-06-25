@@ -7,8 +7,18 @@ Created on Fri Jun  3 17:42:09 2022
 @author: jonat
 """
 import numpy as np
+import matplotlib.pyplot as plt
 
-class pot:
+
+class grided_numerics:
+    def temperatur(self):
+        # calculate average here in example
+        return print(f'{self.T - 273.15} °C')
+
+
+
+
+class pot(grided_numerics):
     def __init__(self,
                  height,  # outside in m
                  radius,  # outside in m
@@ -30,25 +40,28 @@ class pot:
         self.ny = ny
         #  forgot anything?
 
-        dx, dy = self.build(wall_thickness, height, nx, ny)
-
-    def temperatur(self):
-        return self.T - 273.15
+        self.Tgrid, self.dx, self.dy = self.build(wall_thickness,
+                                                  height,
+                                                  nx,
+                                                  ny)
+        self.Tgrid = T
 
     def build(self, wall_thickness, height, nx, ny):
         dx = np.linspace(self.radius - self.wall_thickness, self.radius, nx)
         dy = np.linspace(self.height - self.wall_thickness, self.height, ny)
-        return dx, dy
+        Tgrid = np.arange(nx, ny)
+        return Tgrid, dx, dy
+
+    def ShowGrid(self):
+        plt.scatter(self.dx, self.dy)
+        plt.show()
 
 
-class liquid:
+class liquid(grided_numerics):
     def __init__(self, T, heat_capacity, state):
         self.T = T + 273.15
         self.heat_capacity = heat_capacity
         self.state = state  # ignored for the moment
-
-    def temperatur(self):
-        return self.T - 273.15
 
 
 hobbock_steel = pot(height=0.8,  # in m
@@ -62,4 +75,6 @@ honey_1 = liquid(20, 3.82, 'solid')  # some internet values
 
 
 for i in range(10):
-    print(f'{honey_1.temperatur()} °C')
+    honey_1.temperatur()
+
+hobbock_steel.ShowGrid()
