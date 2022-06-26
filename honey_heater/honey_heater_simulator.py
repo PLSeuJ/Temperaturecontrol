@@ -8,14 +8,13 @@ Created on Fri Jun  3 17:42:09 2022
 """
 import numpy as np
 import matplotlib.pyplot as plt
+import xarray as xr
 
 
 class grided_numerics:
     def temperatur(self):
         # calculate average here in example
         return print(f'{self.T - 273.15} °C')
-
-
 
 
 class pot(grided_numerics):
@@ -40,20 +39,38 @@ class pot(grided_numerics):
         self.ny = ny
         #  forgot anything?
 
-        self.Tgrid, self.dx, self.dy = self.build(wall_thickness,
-                                                  height,
-                                                  nx,
-                                                  ny)
-        self.Tgrid = T
+        self.grid = self.build(wall_thickness,
+                               height,
+                               T,
+                               wall_heat_transmissivity,
+                               nx,
+                               ny)
+        # self.Tgrid = T
 
-    def build(self, wall_thickness, height, nx, ny):
-        dx = np.linspace(self.radius - self.wall_thickness, self.radius, nx)
+    def build(self, wall_thickness, height, T, heat_capacity, nx, ny):
+        dx_wall = np.linspace(self.radius + self.wall_thickness, self.radius, nx)
+        dx = np.concatenate(dx_wall, np.linspace(self.radius, 0, nx))
         dy = np.linspace(self.height - self.wall_thickness, self.height, ny)
-        Tgrid = np.arange(nx, ny)
-        return Tgrid, dx, dy
+
+        T_grid = np.zeros([nx, ny, 1]) + T
+        dx_grid = np.zeros([nx, ny]) + dx
+        dy_grid = np.zeros([nx, ny]) + [dy]
+
+        pot_grid = xr.Dataset(data_vars=dict(temperature=(["x", "y", "time"],
+                                                          T_grid),
+                                              # heat_capacity=(["x", "y", "time"],
+                                              #               0),
+                                              # is_simulated_grid=(["x", "y"],
+                                              #                   True)
+                                                                  ),
+                              coords=dict(x=(["x", "y"], dx),
+                                          y=(["x", "y"], dy),
+                                          time=0),
+                              attrs=dict(description="pot"))
+        return pot_grid
 
     def ShowGrid(self):
-        plt.scatter(self.dx, self.dy)
+        plt.scatter(self.dx, self.dy, self.Tgrid)
         plt.show()
 
 
@@ -74,7 +91,7 @@ hobbock_steel = pot(height=0.8,  # in m
 honey_1 = liquid(20, 3.82, 'solid')  # some internet values
 
 
-for i in range(10):
-    honey_1.temperatur()
+# for i in range(10):
+#     honey_1.temperatur()
 
-hobbock_steel.ShowGrid()
+# hobbock_steel.ShowGrid()
