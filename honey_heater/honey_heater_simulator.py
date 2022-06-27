@@ -49,11 +49,18 @@ class pot(grided_numerics):
     def build(self, wall_thickness, height, nx, ny):
         dx = np.linspace(self.radius - self.wall_thickness, self.radius, nx)
         dy = np.linspace(self.height - self.wall_thickness, self.height, ny)
-        Tgrid = np.arange(nx, ny)
+        Tgrid = np.zeros(nx, ny) + self.T
+        dxgrid = np.zeros(nx, ny) + dx
+        dygrid = np.zeros(ny, nx) + dy
+        dygrid = dygrid.T
+
+        dx_weight = 0.5 * (np.roll(dxgrid, 1) - np.roll(dxgrid, -1))
+        dx_weight[(0, -1)] = 0.5 * dx_weight[(1, -2)]
+        weightening = np.zeros(nx, ny) + dx_weight
         return Tgrid, dx, dy
 
     def ShowGrid(self):
-        plt.scatter(self.dx, self.dy)
+        plt.scatter(self.dxgrid, self.dygrid)
         plt.show()
 
 
