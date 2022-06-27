@@ -1,5 +1,5 @@
 //-------------------------------------------------------------------------
-// Temperatur Regelung 
+// Temperatur Regelung
 // Version: V0.5
 // created: 29.01.2021
 // last edit: 16.04.2021
@@ -28,7 +28,7 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 const int SensorPin     = 2; // Digital Pin für digitales Eingangssignal
-// chnage following button to 
+// chnage following button to
 const int PowerPin      = 7; // Digital Pin für digitales Ausgangssignal
 //const int OkButtonPin  = 6; // Digital Pin for confirmation of selcted item
 
@@ -39,13 +39,13 @@ int DownButtonState = 0;
 
 float MesswertTemperatur = 0; // Rohwert für Temperatur
 float Temperatur = 0; // Temperatur in °C
-float SollTemperatur = 37; // Solltemperatur
-float Delta = 0.5; // Abweichungstolleranz von Solltemperatur
+float SollTemperatur = 37; // Solltemperatur über 40°C geht der Honig kaputt
+float Delta = 0.5; // Abweichungstolleranz von Solltemperatur, sollte kleiner 10°C sein
 // nachfolgendes Min und Max löschen
 // float SollMax = 37; // Eingestellte Maximal Temperatur in °C
 // float SollMin = SollMax; // Eingestellte Minimal Temperatur in °C
 
-float dtLampe = 60000; // Ruhezeit Lampe = min × sek/min × msek/sek  
+float dtLampe = 60000; // Ruhezeit Lampe = min × sek/min × msek/sek
 
 
 class Button {
@@ -70,7 +70,7 @@ class Button {
       // in the class, so you don't have to think about it
       // elsewhere in your code
       byte newReading = digitalRead(pin);
-      
+
       if (newReading != lastReading) {
         lastDebounceTime = millis();
       }
@@ -93,9 +93,9 @@ class Button {
 void setup()
  {
   Serial.begin(9600); // Serielle Schnittstelle starten für einfacheres testen
-  
+
   sensors.begin(); // Temperatursensor konfigurieren
-  
+
   lcd.begin(); // startet den LCD Bidschirm
   lcd.clear(); // Bildschirmausgaben löschen und Curor auf 0,0 setzen
   lcd.backlight(); // Hintergrundbeleuchtung einschalten
@@ -119,7 +119,8 @@ void setup()
 void test()
 {
   // Serial.print("Testing")
-  
+  // hand over to python?
+
 //
 }
 
@@ -133,12 +134,12 @@ void loop()
   Temperatur = sensors.getTempCByIndex(0); // ...und in °C speichern
 
   int i = 0; // Schleifenvariable für Auslesevorgänge
-  for (i = 0; i < 5; i++) { // Prüfe Plasibilität der Temperatur fünf Mal
-    if(Temperatur < 0 or Temperatur > 50){ // Prüfe Plasibilität der Temperatur  
+  for (i = 0; i < 5; i++) { // Prüfe Plausibilität der Temperatur fünf Mal
+    if(Temperatur < 0 or Temperatur > 50){ // Prüfe Plausibilität der Temperatur
       sensors.requestTemperatures(); // Temperatur anfragen
       MesswertTemperatur = analogRead(SensorPin); // Temperatur auslesen...
       Temperatur = sensors.getTempCByIndex(0); // ...und in °C speichern
-  
+
       delay(100);
     } else { // Prüfung vorzeitig erfolgreich beenden
       i = 5; // for-Schleife beenden, da Temperatur plausibel
@@ -151,26 +152,26 @@ void loop()
     lcd.clear(); // Clear the screen
     lcd.print("press reset");
     lcd.blink(); // Blinke mit dem Cursor
-    
+
   } else { // Normale Temperaturausgabe
     // Temperatur am LCD ausgeben
     lcd.clear(); // Clear the screen
-    lcd.print(Temperatur); 
+    lcd.print(Temperatur);
     lcd.print(" ");
     lcd.print((char)223);
     lcd.print("C");
 
     lcd.setCursor(0,1); // neue Zeile
-    lcd.print(SollTemperatur); 
+    lcd.print(SollTemperatur);
     lcd.print(" ");
     lcd.print((char)223);
     lcd.print("C");
-  
+
     if(Temperatur < SollTemperatur - Delta){ // Einschalten
       pinMode(PowerPin, HIGH);
     } else if (Temperatur > SollTemperatur + Delta) { // Ausschalten
       pinMode(PowerPin, LOW);
-    }  
+    }
   }
   delay(1000);
 }
