@@ -8,6 +8,7 @@ Created on Fri Jun  3 17:42:09 2022
 """
 import numpy as np
 import matplotlib.pyplot as plt
+from math import pi
 
 
 class grided_numerics:
@@ -56,7 +57,12 @@ class pot(grided_numerics):
 
         dx_weight = 0.5 * (np.roll(dxgrid, 1) - np.roll(dxgrid, -1))
         dx_weight[(0, -1)] = 0.5 * dx_weight[(1, -2)]
-        weightening = np.zeros(nx, ny) + dx_weight
+
+        dy_weight = 0.5 * (np.roll(dygrid, 1) - np.roll(dygrid, -1))
+        dy_weight[(0, -1)] = 0.5 * dy_weight[(1, -2)]
+
+        dA_grid = (np.zeros(nx, ny) + dx_weight * dx_grid) * pi/2
+        dV_grig = dA_grid * dy_weight
         return Tgrid, dx, dy
 
     def ShowGrid(self):
