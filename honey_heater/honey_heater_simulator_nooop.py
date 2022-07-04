@@ -40,13 +40,13 @@ def build_grid(name, shape=(10, 10), value=0):
     return {name: grid}
 
 
-def encase_grid(griddict, name, add_shape=(2, 2), value=0, *, exclude=None):
+def encase_grid(grid, add_shape=(2, 2), value=0, *, exclude=['none']):
     """
     test:
     add gridpoints around your existing grid and return the entire thing
 
     Input:
-        griddict    dict of grid
+        grid        numpy grid of the griddict
         add_shape   integer tupel ([..., z, y,] x)
                         must match shape of old grid or have one value,
                         added to all sides unless excluded.
@@ -58,14 +58,14 @@ def encase_grid(griddict, name, add_shape=(2, 2), value=0, *, exclude=None):
                     Only tested for 2d cases.
 
     Output:
-        dict(name: new grid)
+        new grid
     """
 
     def get_side(side, grid, value):
         if side in ('left', 'right'):
-            shape = (grid.shape[0], add_shape(1))
+            shape = (grid.shape[0], add_shape[1])
         if side in ('top', 'bottom'):
-            shape = (add_shape(0), grid.shape[1])
+            shape = (add_shape[0], grid.shape[1])
 
         # make array and fill it with desired value
         addgrid = np.empty(shape,
@@ -80,28 +80,16 @@ def encase_grid(griddict, name, add_shape=(2, 2), value=0, *, exclude=None):
         if side == 'bottom': return np.concatenate((grid, addgrid), axis=0)
 
     # Do the thing
-    grid = griddict[name]
     # add all sides individually to make it easly to exclude specified
     for side in ('left', 'right', 'top', 'bottom'):
-        if side in exclude:
+        if (side in exclude):
             continue
-        grid = add_side(grid, get_side(), side)
+        grid = add_side(grid, get_side(side, grid, value=value), side)
     return grid
 
 
-# def main():
-    # honey = get_honey()
-    # grid = put_in_pot(honey)
-    # set_boundarys()
-
-    # run_model()
-
-    # plot_result()  # is honey liquid and maxtemperature was never reached?
-    # plot_Temperaturedevelopement()
-
-
 # define the numerical grid for honey
-def get_honey(shape=(10, 10),
+def build(shape=(10, 10),
               T=20,  # in °C
               ):
     """
@@ -125,6 +113,16 @@ def get_honey(shape=(10, 10),
     honey.update(build_grid('x', shape, 0))
     honey.update(build_grid('y', shape, 0))
 
+
+# def main():
+    # honey = build()
+    # grid = put_in_pot(honey)
+    # set_boundarys()
+
+    # run_model()
+
+    # plot_result()  # is honey liquid and maxtemperature was never reached?
+    # plot_Temperaturedevelopement()
 
 # define input parameters
 height = 0.8  # in m

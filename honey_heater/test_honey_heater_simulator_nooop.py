@@ -31,6 +31,17 @@ def test_build_grid():
     np.testing.assert_array_equal(a_real['test'], a_test['test'])
 
 
+def test_encase_grid():
+    a_real = [[2., 2., 2., 2.],
+              [2., 2., 2., 2.],
+              [2., 0., 0., 2.],
+              [2., 0., 0., 2.],
+              [2., 2., 2., 2.],
+              [2., 2., 2., 2.]]
+    a = np.zeros((2,2))
+    np.testing.assert_array_equal(hhsn.encase_grid(a, (2, 1), 2), a_real)
+
+
 # def test_encase_grid(grid, name, add_shape=(2, 2), value=0, *, exclude=None):
 #     """
 #     test:
