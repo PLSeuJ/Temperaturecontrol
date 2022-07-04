@@ -25,7 +25,7 @@ def test_build_grid():
     a_real = {'test': [[2, 2],
                        [2, 2],
                        [2, 2]]}
-    a_test = hhsn.build_grid('test', (2, 3), 2)
+    a_test = hhsn.build_grid('test', (3, 2), 2)
     # assert type(a_test) == dict
     assert a_real.keys() == a_test.keys()
     np.testing.assert_array_equal(a_real['test'], a_test['test'])
