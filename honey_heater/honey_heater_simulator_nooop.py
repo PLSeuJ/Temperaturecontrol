@@ -90,6 +90,7 @@ def encase_grid(grid, add_shape=(2, 2), value=0, *, exclude=['none']):
 
 # define the numerical grid for honey
 def build(shape=(10, 10),
+          add_shape
               T=20,  # in °C
               ):
     """
@@ -100,6 +101,10 @@ def build(shape=(10, 10),
     # undergoing change in time
     # physical parameters that (might) undergo change in numerical model.
     honey = build_grid('Temperature', shape, T+273.15)
+
+    ng = build_grid('Temperature', shape, innershape, outervalue, innervalue)
+    ng = encase_grid(honey['Temperature'], add_shape, T+273.15)
+
     honey.update(build_grid('heat capacity', shape, 0))
     honey.update(build_grid('heat conductivity', shape, 0))
     honey.update(build_grid('is_liquid', shape, False))  # physical state of honey
