@@ -2,45 +2,77 @@
 """
 This progamm simulates the heating of honey - at some point
 
+build the numerical grid from the inside out,
+set the boundary conditions afterwards and
+apply the numerical method than.
+
+Use the inbuild plotting function to visualise your results.
+
 Created on Fri Jun  3 17:42:09 2022
 
 @author: jonat
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import xarray as xr
+# import xarray as xr
 
 
-height = 0.8  # in m
-radius = 0.3  # in m
-albedo = 0.9
-wall_thickness = 0.46 / 100  # in mm
-wall_heat_transmissivity = 3
-T = 20  # in °C
+# define grid from inside out
+def build_grid(name, shape=(10, 10), value=0):
+    """
+    test:
+    define dictionary item containing grid with specified initial value
 
-nx, ny = 10, 10
-
-T_grid = np.zeros([nx, ny, 1]) + T + 273.15 
-x_grid = np.zeros([nx, ny]) + np.linspace(0, 2*radius, nx)
-y_grid = np.zeros([nx, ny]) + np.linspace(height, 0, ny)
-y_grid = y_grid.T
-
-pot_grid = xr.Dataset(data_vars=dict(temperature=(["x", "y", "time"],
-                                                  T_grid),
-                                      # heat_capacity=(["x", "y", "time"],
-                                      #               0),
-                                      # is_simulated_grid=(["x", "y"],
-                                      #                   True)
-                                                          ),
-                      coords=dict(dx=(["x", "y"], x_grid),
-                                  dy=(["x", "y"], y_grid),
-                                  time=0),
-                      attrs=dict(description="pot"))
-
-# honey_1 = liquid(20, 3.82, 'solid')  # some internet values
+    Input:
+        grid        dict of grid
+        name        sting
+        add_shape   integer tupel (x[, y, z, ...])
+                        must match shape of old grid or have one value,
+                        added to all sides unless excluded.
+        value       flt or int
+        exclude     sides to exclude when adding gridpoints
+    Output:
+        dict(name: new grid)
+    """
+    grid = np.zeros(shape[::-1])
+    grid += value
+    return {name: grid}
 
 
-# for i in range(10):
-#     honey_1.temperatur()
+# def encase_grid(grid, name, add_shape=(2, 2), value=0, * , exclude=None):
+#     """
+#     test:
+#     add gridpoints around your existing grid and return the entire thing
 
-# hobbock_steel.ShowGrid()
+#     Input:
+#         grid        dict of grid
+#         name        sting
+#         add_shape   integer tupel (x[, y, z, ...])
+#                         must match shape of old grid or have one value,
+#                         added to all sides unless excluded.
+#         value       flt or int
+#         exclude     sides to exclude when adding gridpoints
+#                     use 'left', 'right', 'top', 'bottom' individualy or
+#                     as a tupel. Default = None
+
+#     Output:
+#         dict(name: new grid)
+#     """
+#     grid =
+
+
+def main():
+    # define the numerical grid for honey
+    shape = (10, 10)
+    T = 20  # in °C
+    honey = build_grid('Temperature', shape, T+273.15)
+
+    # define input parameters
+    height = 0.8  # in m
+    radius = 0.3  # in m
+    albedo = 0.9
+    wall_thickness = 0.46 / 100  # in mm
+    wall_heat_transmissivity = 3
+
+if __name__ == 'main':
+    main()
