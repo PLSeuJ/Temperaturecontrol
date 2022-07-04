@@ -34,8 +34,9 @@ def build_grid(name, shape=(10, 10), value=0):
     Output:
         dict(name: new grid)
     """
-    grid = np.zeros(shape[::-1])
-    grid += value
+    grid = np.empty(shape[::-1],
+                    dtype=type(value) if type(value) == bool else float)
+    grid[:] = value
     return {name: grid}
 
 
@@ -61,18 +62,45 @@ def build_grid(name, shape=(10, 10), value=0):
 #     grid =
 
 
-def main():
-    # define the numerical grid for honey
-    shape = (10, 10)
-    T = 20  # in °C
-    honey = build_grid('Temperature', shape, T+273.15)
+# def main():
+    # honey = get_honey()
+    # grid = put_in_pot(honey)
+    # set_boundarys()
 
-    # define input parameters
-    height = 0.8  # in m
-    radius = 0.3  # in m
-    albedo = 0.9
-    wall_thickness = 0.46 / 100  # in mm
-    wall_heat_transmissivity = 3
+    # run_model()
 
-if __name__ == 'main':
-    main()
+    # plot_result()  # is honey liquid and maxtemperature was never reached?
+    # plot_Temperaturedevelopement()
+    
+# define the numerical grid for honey
+shape = (10, 10)
+T = 20  # in °C
+
+# undergoing change in time
+# physical parameters that (might) undergo change in numerical model.
+honey = build_grid('Temperature', shape, T+273.15)
+honey.update(build_grid('heat capacity', shape, 0))
+honey.update(build_grid('heat conductivity', shape, 0))
+honey.update(build_grid('is_liquid', shape, False))  # physical state of honey
+
+# constant stuff
+honey.update(build_grid('is_honey', shape, True))
+# to check for spoiled honey:
+honey.update(build_grid('max_Temperature', shape, T+273.15))
+
+# positional information for grid allocation in plotting
+honey.update(build_grid('x', shape, 0))
+honey.update(build_grid('y', shape, 0))
+
+
+# define input parameters
+height = 0.8  # in m
+radius = 0.3  # in m
+albedo = 0.9
+wall_thickness = 0.46 / 100  # in mm
+wall_heat_transmissivity = 3
+
+
+# if __name__ == 'main':
+#     a = main()
+#     print(a)
