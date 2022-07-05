@@ -73,11 +73,15 @@ def encase_grid(grid, add_shape=(2, 2), value=0, *, exclude=['none']):
         addgrid[:] = value
         return addgrid
 
-    def add_side(grid, addgrid, side_name):
-        if side == 'left': return np.concatenate((addgrid, grid), axis=1)
-        if side == 'right': return np.concatenate((grid, addgrid), axis=1)
-        if side == 'top': return np.concatenate((addgrid, grid), axis=0)
-        if side == 'bottom': return np.concatenate((grid, addgrid), axis=0)
+    def add_side(grid, addgrid, side_name):  # TODO
+        if side == 'left':
+            return np.concatenate((addgrid, grid), axis=1)
+        if side == 'right':
+            return np.concatenate((grid, addgrid), axis=1)
+        if side == 'top':
+            return np.concatenate((addgrid, grid), axis=0)
+        if side == 'bottom':
+            return np.concatenate((grid, addgrid), axis=0)
 
     # Do the thing
     # add all sides individually to make it easly to exclude specified
@@ -89,34 +93,34 @@ def encase_grid(grid, add_shape=(2, 2), value=0, *, exclude=['none']):
 
 
 # define the numerical grid for honey
-def build(shape=(10, 10),
-          add_shape
-              T=20,  # in °C
-              ):
-    """
-    sets up honey as numerical grid
-    returns dictonary of grids
-    """
+# def build(shape=(10, 10),
+#           add_shape=(1,1),
+#           T=20,  # in °C
+#           ):
+#     """
+#     sets up honey as numerical grid
+#     returns dictonary of grids
+#     """
 
-    # undergoing change in time
-    # physical parameters that (might) undergo change in numerical model.
-    honey = build_grid('Temperature', shape, T+273.15)
+#     # undergoing change in time
+#     # physical parameters that (might) undergo change in numerical model.
+#     honey = build_grid('Temperature', shape, T+273.15)
 
-    ng = build_grid('Temperature', shape, innershape, outervalue, innervalue)
-    ng = encase_grid(honey['Temperature'], add_shape, T+273.15)
+#     ng = build_grid('Temperature', shape, innershape, outervalue, innervalue)
+#     ng = encase_grid(honey['Temperature'], add_shape, T+273.15)
 
-    honey.update(build_grid('heat capacity', shape, 0))
-    honey.update(build_grid('heat conductivity', shape, 0))
-    honey.update(build_grid('is_liquid', shape, False))  # physical state of honey
+#     honey.update(build_grid('heat capacity', shape, 0))
+#     honey.update(build_grid('heat conductivity', shape, 0))
+#     honey.update(build_grid('is_liquid', shape, False))  # physical state of honey
 
-    # constant stuff
-    honey.update(build_grid('is_honey', shape, True))
-    # to check for spoiled honey:
-    honey.update(build_grid('max_Temperature', shape, T+273.15))
+#     # constant stuff
+#     honey.update(build_grid('is_honey', shape, True))
+#     # to check for spoiled honey:
+#     honey.update(build_grid('max_Temperature', shape, T+273.15))
 
-    # positional information for grid allocation in plotting
-    honey.update(build_grid('x', shape, 0))
-    honey.update(build_grid('y', shape, 0))
+#     # positional information for grid allocation in plotting
+#     honey.update(build_grid('x', shape, 0))
+#     honey.update(build_grid('y', shape, 0))
 
 
 # def main():
