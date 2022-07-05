@@ -29,7 +29,7 @@ n_boundary = [1, 1]
 # distances in medium [meter]
 d_honey = [0.4, 0.8]
 d_container = [2 * 10**(-5), 2 * 10**(-5)]
-d_boundary = [10**(-3), 10**(-3)]
+d_boundary = [10**(-2), 10**(-2)]
 
 n = []
 for i in range(2):
@@ -72,11 +72,13 @@ for i in range(len(dy)):
     dy[i] = np.where(boundary_mask[i, int(n[1]/2)],
                      d_boundary[0]/n_boundary[0], dy[i])
 
-x_grid, y_grid = np.zeros(n), np.zeros(n)
-for i in range(1, n[1]):
-    y_grid[:, i] = y_grid[:, i-1] + dx[i]
-for j in range(1, n[0]):
-    x_grid[j, :] = x_grid[j-1, :] + dy[j]
+x_grid = (np.ones(n).T * (dy)).T
+y_grid = np.ones(n) * (dx)
+
+for i in range(n[1]-1):
+    y_grid[:, i+1] = y_grid[:, i] + dx[i]
+for j in range(n[0]-1):
+    x_grid[j+1, :] = x_grid[j, :] + dy[j]
 
 
 # define Volumes for weightening
@@ -102,9 +104,12 @@ T = np.ones(n) * T_zero
 
 # plot the thing
 fig = plt.figure(1, figsize=(6, 7))
-plt.contour(x_grid, y_grid, container_mask, [-1, 1, 2],
+plt.contour(x_grid, y_grid, container_mask, [0.9, 1.1],
             cmap='gray_r', vmin=0, vmax=5)
-plt.contourf(x_grid, y_grid, T)
+# plt.contourf(x_grid, y_grid, T)
 
 
 plt.scatter(x_grid, y_grid, T, alpha=0.2)
+a = 0.05
+plt.xlim(-a, x_grid[-1, 0] + a)
+plt.ylim(-a, y_grid[0, -1] + a)
