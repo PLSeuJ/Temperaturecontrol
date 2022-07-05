@@ -13,6 +13,7 @@ Created on Fri Jun  3 17:42:09 2022
 @author: jonat
 """
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 import xarray as xr
 
@@ -76,6 +77,20 @@ for i in range(1, n[1]):
     y_grid[:, i] = y_grid[:, i-1] + dx[i]
 for j in range(1, n[0]):
     x_grid[j, :] = x_grid[j-1, :] + dy[j]
+
+
+# define Volumes for weightening
+r = np.empty((n[0]-1, n[1]))
+for i in range(n[0]-1):
+    r[i, :] = abs((x_grid[i, :] + x_grid[i+1, :]) - (2 * x_grid[-1, :]))
+
+V_grid = np.empty(n)
+
+V_grid[0, :] = x_grid[-1, :] * (1 - math.pi / 4)
+V_grid[-1, :] = x_grid[-1, :] * (1 - math.pi / 4)
+
+for i in range(n[0]-2):
+    V_grid[i+1, :] = math.pi/2 * abs(r[i, :]**2 - r[i+1, :]**2)
 
 
 # define other grids
