@@ -8,7 +8,7 @@ Created on Fri Jun  3 17:42:09 2022
 """
 import numpy as np
 import matplotlib.pyplot as plt
-import xarray as xr
+# import xarray as xr
 
 
 class grided_numerics:
@@ -48,7 +48,8 @@ class pot(grided_numerics):
         # self.Tgrid = T
 
     def build(self, wall_thickness, height, T, heat_capacity, nx, ny):
-        dx_wall = np.linspace(self.radius + self.wall_thickness, self.radius, nx)
+        dx_wall = np.linspace(
+            self.radius + self.wall_thickness, self.radius, nx)
         dx = np.concatenate(dx_wall, np.linspace(self.radius, 0, nx))
         dy = np.linspace(self.height - self.wall_thickness, self.height, ny)
 
@@ -58,11 +59,11 @@ class pot(grided_numerics):
 
         pot_grid = xr.Dataset(data_vars=dict(temperature=(["x", "y", "time"],
                                                           T_grid),
-                                              # heat_capacity=(["x", "y", "time"],
-                                              #               0),
-                                              # is_simulated_grid=(["x", "y"],
-                                              #                   True)
-                                                                  ),
+                                             # heat_capacity=(["x", "y", "time"],
+                                             #               0),
+                                             # is_simulated_grid=(["x", "y"],
+                                             #                   True)
+                                             ),
                               coords=dict(x=(["x", "y"], dx),
                                           y=(["x", "y"], dy),
                                           time=0),

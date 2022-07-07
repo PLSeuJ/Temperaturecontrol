@@ -15,7 +15,7 @@ Created on Fri Jun  3 17:42:09 2022
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-import xarray as xr
+# import xarray as xr
 
 # some constats
 T_zero = 20 + 273.15
@@ -56,21 +56,19 @@ container_mask = np.where(boundary_mask, False, container_mask)
 # define positions
 dx, dy = np.zeros(n[1]), np.zeros(n[0])  # dx varies with y and vice versa
 
-for i in range(len(dx)):
-    dx[i] = np.where(honey_mask[int(n[0]/2), i],
-                     d_honey[1]/n_honey[1], dx[i])
-    dx[i] = np.where(container_mask[int(n[0]/2), i],
-                     d_container[1]/n_container[1], dx[i])
-    dx[i] = np.where(boundary_mask[int(n[0]/2), i],
-                     d_boundary[1]/n_boundary[1], dx[i])
+dx[:] = np.where(honey_mask[int(n[0]/2), :],
+                 d_honey[1]/n_honey[1], dx[:])
+dx[:] = np.where(container_mask[int(n[0]/2), :],
+                 d_container[1]/n_container[1], dx[:])
+dx[:] = np.where(boundary_mask[int(n[0]/2), i],
+                 d_boundary[1]/n_boundary[1], dx[:])
 
-for i in range(len(dy)):
-    dy[i] = np.where(honey_mask[i, int(n[1]/2)],
-                     d_honey[0]/n_honey[0], dy[i])
-    dy[i] = np.where(container_mask[i, int(n[1]/2)],
-                     d_container[0]/n_container[0], dy[i])
-    dy[i] = np.where(boundary_mask[i, int(n[1]/2)],
-                     d_boundary[0]/n_boundary[0], dy[i])
+dy[:] = np.where(honey_mask[i, int(n[1]/2)],
+                 d_honey[0]/n_honey[0], dy[:])
+dy[:] = np.where(container_mask[i, int(n[1]/2)],
+                 d_container[0]/n_container[0], dy[:])
+dy[:] = np.where(boundary_mask[i, int(n[1]/2)],
+                 d_boundary[0]/n_boundary[0], dy[:])
 
 x_grid = (np.ones(n).T * (dy)).T
 y_grid = np.ones(n) * (dx)
