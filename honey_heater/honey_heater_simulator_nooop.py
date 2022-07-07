@@ -15,6 +15,7 @@ Created on Fri Jun  3 17:42:09 2022
 import numpy as np
 import math
 import matplotlib.pyplot as plt
+from itertools import accumulate
 # import xarray as xr
 
 # some constats
@@ -70,19 +71,15 @@ dy[:] = np.where(container_mask[i, int(n[1]/2)],
 dy[:] = np.where(boundary_mask[i, int(n[1]/2)],
                  d_boundary[0]/n_boundary[0], dy[:])
 
-x_grid = (np.ones(n).T * (dy)).T
-y_grid = np.ones(n) * (dx)
-
-for i in range(n[1]-1):
-    y_grid[:, i+1] = y_grid[:, i] + dx[i]
-for j in range(n[0]-1):
-    x_grid[j+1, :] = x_grid[j, :] + dy[j]
+x_grid = (np.ones(n).T * [bi for bi in accumulate(dy)]).T
+y_grid = np.ones(n) * [bi for bi in accumulate(dx)]
 
 
 # define Volumes for weightening
 r = np.empty((n[0]-1, n[1]))
 for i in range(n[0]-1):
     r[i, :] = abs((x_grid[i, :] + x_grid[i+1, :]) - (2 * x_grid[-1, :]))
+    # r = abs((x_grid + np.roll(x_grid, 1)) - 2 * np.roll(x_grid, -1))
 
 V_grid = np.empty(n)
 
@@ -91,6 +88,7 @@ V_grid[-1, :] = x_grid[-1, :] * (1 - math.pi / 4)
 
 for i in range(n[0]-2):
     V_grid[i+1, :] = math.pi/2 * abs(r[i, :]**2 - r[i+1, :]**2)
+    # V_grid = math.pi/2 * abs(np.roll(r, -1)**2 - r**2)
 
 
 # define other grids
