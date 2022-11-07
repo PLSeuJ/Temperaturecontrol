@@ -53,7 +53,7 @@ const int PowerPin = 7;  // Digital Pin für digitales Ausgangssignal
 LCD_I2C lcd(0x27);  // A4 - SDA und A5 - SCL
 
 OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature sensors(&oneWire);
+DallasTemperature sensor(&oneWire);
 
 
 // Globale Variablen
@@ -68,13 +68,12 @@ bool CancelButtonState = 0;
 // Temperatur
 float MesswertTemperatur = 0; // Rohwert für Temperatur
 float Temperatur = 0; // Temperatur in °C
-float Temp_Soll = 38; // Solltemperatur (gültig für Honig) in °C
-float Temp_On = 37;  // Einschalttemperatur für Lampe in °C
-float Temp_Off = Temp_Soll;  // Ausschalttemperatur für Lampe in °C
+float Temp_On = 28;  // Einschalttemperatur für Lampe in °C
+float Temp_Off = 30;  // Ausschalttemperatur für Lampe in °C
 // Temp_Off = Temp_Soll + Temp_Delta;  // <--Wenn Wärmeübergang bekannt kann so der Aufheitzvorgang beschleunigt werden
 
 // Zeit
-unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek 
+unsigned long Messintervall = 2 * 1000;  // in Sekunden x 1000ms/sek 
 unsigned long TimeNow;
 unsigned long TimePrev;
 
@@ -92,7 +91,7 @@ void setup()
   lcd.print(VersNr);
   lcd.noBlink();
 
-  sensors.begin();  // Temperatursensor konfigurieren
+  sensor.begin();  // Temperatursensor konfigurieren
 
   pinMode(SensorPin, INPUT);
   // Buttons
@@ -104,7 +103,7 @@ void setup()
   pinMode(PowerPin, OUTPUT);
   pinMode(PowerPin, LOW);
 
-  delay(500);
+  delay(1000);
 
   TimeNow = millis();
   TimePrev = TimeNow;
@@ -151,34 +150,24 @@ void NotAus()
 float Messung(void)
 /* Misst Temperatur und gibt Temperatur in °C zurück. */
 {
-  sensors.requestTemperatures(); // Temperatur anfragen
+  sensor.requestTemperatures(); // Temperatur anfragen
   MesswertTemperatur = analogRead(SensorPin); // Temperatur auslesen...
-  return sensors.getTempCByIndex(0); // ...und in °C speichern
-}
-
-
-float SichereMessung(void)
-/* Bricht Heitzen ab, bei 10 ungültigen Messungen*/
-{
-  for (int i=0; i==10; i++) {
-    Temperatur = Messung();
-    if(Temperatur > 0 or Temperatur < 50) {
-      return Temperatur;  // erfolgreiche Messung
-    }
-  }
-
-  NotAus();
-  return 999;
+  return sensor.getTempCByIndex(0); // ...und in °C speichern
 }
 
 
 // Programm
 void loop(){
   TimeNow = millis();
+
   if (TimeNow - TimePrev >= Messintervall) {
-    if (Messung() < Temp_Soll) {
+    Temperatur = Messung();
+    lcd.clear();
+    lcd.print(Temperatur);
+
+    if (Temperatur < Temp_On) {
       PowerState = 1;
-    } else {
+    } else if (Temperatur > Temp_Off) {
       PowerState = 0;
     }
     pinMode(PowerPin, PowerState);
