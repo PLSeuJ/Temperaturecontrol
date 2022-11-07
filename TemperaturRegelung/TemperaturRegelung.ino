@@ -129,23 +129,6 @@ void GetRunTime(Timenow=millis(), timearray)
 }
 */
 
-void NotAus() 
-/* Schaltet Heitzung aus und druckt Fehler-Meldung */
-{
-  PowerState = 0;
-  pinMode(PowerPin, PowerState);
-/*
-  char message[] = "Temperaturfehler detecktiert; wahrscheinliche Laufzeit bei Fehlerauftritt: " + 
-                    timearray + 
-                    " ; Temperatursensor überprüfen; für Neustart 'reset'-Taste drücken."
-  */
-  lcd.clear();
-  lcd.print("Not Abbruch");
-  //lcd.setCursor(0,1);
-  //lcd.autoscroll();
-  //lcd.print(message);
-}
-
 
 float Messung(void)
 /* Misst Temperatur und gibt Temperatur in °C zurück. */
@@ -160,18 +143,21 @@ float Messung(void)
 void loop(){
   TimeNow = millis();
 
-  if (TimeNow - TimePrev >= Messintervall) {
+  // < check buttons here >
+
+  if (TimeNow - TimePrev >= Messintervall) {  // time for a measurnement?
     Temperatur = Messung();
     lcd.clear();
     lcd.print(Temperatur);
 
-    if (Temperatur < Temp_On) {
+    if (Temperatur < Temp_On) {  // assert Temperature
       PowerState = 1;
     } else if (Temperatur > Temp_Off) {
       PowerState = 0;
     }
-    pinMode(PowerPin, PowerState);
 
-    TimePrev = TimeNow;
+    pinMode(PowerPin, PowerState);  // toggle heater
+
+    TimePrev = TimeNow;  // update time
   }
 }
