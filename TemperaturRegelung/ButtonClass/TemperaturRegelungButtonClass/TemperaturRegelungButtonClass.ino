@@ -1,51 +1,53 @@
-//-------------------------------------------------------------------------
-// Temperatur Regelung 
-// Version: V0.5
-// created: 29.01.2021
-// last edit: 16.04.2021
-// author: Jonathan Schumann
-// mail: jonathanschumann@gmx.de
-//
-// for an english version contact the author please.
-//
-// Der Sketch ist für einen Arduino Nano geschrieben.
-// Über ein an Pin 7 angesteuertes Relay wird eine Heitzung betrieben;
-// die Ein- und Ausschaltung der Heitzung erfolgt, sobalt die an Pin D2 gemessene Temperatur,
-// außerhalb des Temperaturbereichs (Soll +- Delta) liegt.
-//
-// plan: V0.6: Das Intervall soll über die beiden Knöpfe an Pin 3 und 4 eingestellt werden können
-//-------------------------------------------------------------------------
+/*-------------------------------------------------------------------------
+Temperatur Regelung Menü
+Version: V0.5
+created: 29.01.2021
+last edit: 16.04.2021
+author: Jonathan Schumann
+mail: jonathanschumann@gmx.de
+
+
+Hier ist die Testumgebung für die Menü-Programmierung
+-------------------------------------------------------------------------
+*/
 #include <OneWire.h>
 #include <LCD_I2C.h>
 #include <DallasTemperature.h>
-#define ONE_WIRE_BUS 2
+
+// Versionsnummer
+const char VersNr[7] = "V1.0.0";
 
 // Zuweisung der Anschlüsse
-LCD_I2C lcd(0x27); A4 und A5 für SDA und SCL
-// LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7,3,POSITIVE);
+const int ONE_WIRE_BUS = 2;
+const int SensorPin = 2;  // Digital Pin für digitales Eingangssignal
+const int PowerPin = 7;  // Digital Pin für digitales Ausgangssignal
+//const int VanClockPin = 9;
+//const int VanControlPin = 10;
+
+LCD_I2C lcd(0x27);  // A4 - SDA und A5 - SCL
 
 OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature sensors(&oneWire);
-
-const int SensorPin     = 2; // Digital Pin für digitales Eingangssignal
-// chnage following button to 
-const int PowerPin      = 7; // Digital Pin für digitales Ausgangssignal
-//const int OkButtonPin  = 6; // Digital Pin for confirmation of selcted item
+DallasTemperature sensor(&oneWire);
 
 // Globale Variablen
-int PowerState = 0;
-int UpButtonState = 0;
-int DownButtonState = 0;
+// Logic Variables
+bool PowerState = 0;
 
+// Temperatur
 float MesswertTemperatur = 0; // Rohwert für Temperatur
 float Temperatur = 0; // Temperatur in °C
-float SollTemperatur = 37; // Solltemperatur
-float Delta = 0.5; // Abweichungstolleranz von Solltemperatur
-// nachfolgendes Min und Max löschen
-// float SollMax = 37; // Eingestellte Maximal Temperatur in °C
-// float SollMin = SollMax; // Eingestellte Minimal Temperatur in °C
+float Temp_On = 28;  // Einschalttemperatur für Lampe in °C
+float Temp_Off = 30;  // Ausschalttemperatur für Lampe in °C
+// Temp_Off = Temp_Soll + Temp_Delta;  // <--Wenn Wärmeübergang bekannt kann so der Aufheitzvorgang beschleunigt werden
 
-float dtLampe = 60000; // Ruhezeit Lampe = min × sek/min × msek/sek  
+// Zeit
+unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek 
+unsigned long TimeNow;
+unsigned long TimePrev;
+
+//misc
+char timearray[12]; // here runtime is saved in format dd:hh:mm:ss
+unsigned long Cyclen = 0;  // Anzahl der Einschaltvorgänge
 
 
 class Button {
@@ -54,7 +56,7 @@ class Button {
     byte state;
     byte lastReading;
     unsigned long lastDebounceTime = 0;
-    unsigned long debounceDelay = 50;
+    unsigned long debounceDelay = 75;
   public:
     Button(byte pin) {
       this->pin = pin;
@@ -62,7 +64,7 @@ class Button {
       init();
     }
     void init() {
-      pinMode(pin, INPUT);
+      pinMode(pin, INPUT_PULLUP);
       update();
     }
     void update() {
@@ -85,92 +87,94 @@ class Button {
       return state;
     }
     bool isPressed() {
-      return (getState() == HIGH);
+      return (getState() == LOW);
     }
 }; // don't forget the semicolon at the end of the class
 
+
+Button Button_up(4);
+Button Button_down(5);
+Button Button_ok(6);
+Button Button_cancel(3);
+
+
 //Programm start
-void setup()
- {
+void setup() {
   Serial.begin(9600); // Serielle Schnittstelle starten für einfacheres testen
   
-  sensors.begin(); // Temperatursensor konfigurieren
+  sensor.begin(); // Temperatursensor konfigurieren
   
   lcd.begin(); // startet den LCD Bidschirm
   lcd.clear(); // Bildschirmausgaben löschen und Curor auf 0,0 setzen
   lcd.backlight(); // Hintergrundbeleuchtung einschalten
-  lcd.print("Start");
-  lcd.noBlink();
-
-  Button UpButton(3);
-  Button DownButton(4);
-  // Button OkButton();
-  // Button CancelButton();
+  lcd.print(VersNr);
 
   pinMode(SensorPin, INPUT);
   pinMode(PowerPin, OUTPUT);
   pinMode(PowerPin, LOW);
 
+  delay(1000);
+
   lcd.clear(); // Bildschirmausgaben löschen und Curor auf 0,0 setzen
 }
 
 
-//Test at Startup
-void test()
+
+float Messung(void)
+/* Misst Temperatur und gibt Temperatur in °C zurück. */
 {
-  // Serial.print("Testing")
-  
-//
+  sensor.requestTemperatures(); // Temperatur anfragen
+  MesswertTemperatur = analogRead(SensorPin); // Temperatur auslesen...
+  return sensor.getTempCByIndex(0); // ...und in °C speichern
 }
 
 
 // Programm
 void loop()
 {
-  // 0. Messung
-  sensors.requestTemperatures(); // Temperatur anfragen
-  MesswertTemperatur = analogRead(SensorPin); // Temperatur auslesen...
-  Temperatur = sensors.getTempCByIndex(0); // ...und in °C speichern
+  TimeNow = millis();
 
-  int i = 0; // Schleifenvariable für Auslesevorgänge
-  for (i = 0; i < 5; i++) { // Prüfe Plasibilität der Temperatur fünf Mal
-    if(Temperatur < 0 or Temperatur > 50){ // Prüfe Plasibilität der Temperatur  
-      sensors.requestTemperatures(); // Temperatur anfragen
-      MesswertTemperatur = analogRead(SensorPin); // Temperatur auslesen...
-      Temperatur = sensors.getTempCByIndex(0); // ...und in °C speichern
-  
-      delay(100);
-    } else { // Prüfung vorzeitig erfolgreich beenden
-      i = 5; // for-Schleife beenden, da Temperatur plausibel
-    }
-    Serial.println(i);
+  lcd.setCursor(10, 0);
+  if (Button_cancel.isPressed()) {
+    lcd.print("cancel");
+  } else if (Button_up.isPressed()) {
+    lcd.print("up    ");
+    Temp_Off = Temp_Off + 0.1;
+  } else if (Button_down.isPressed()) {
+    lcd.print("down  ");
+    Temp_Off = Temp_Off - 0.1;
+  } else if (Button_ok.isPressed()) {
+    lcd.print("ok    ");
+  } else {
+    lcd.print("void  ");
   }
+  
+  Temp_Off = constrain(Temp_Off, 12, 50);
+  lcd.setCursor(0,1); // neue Zeile
+  lcd.print(Temp_Off); 
+  lcd.print(" ");
+  lcd.print((char)223);
+  lcd.print("C");
 
-  if(Temperatur < 0 or Temperatur > 50){ // Abbruchkriterium wegen falscher Messung
-    pinMode(PowerPin, LOW);
-    lcd.clear(); // Clear the screen
-    lcd.print("press reset");
-    lcd.blink(); // Blinke mit dem Cursor
-    
-  } else { // Normale Temperaturausgabe
+  if (TimeNow - TimePrev >= Messintervall) {  // time for a measurnement?
+    Temperatur = Messung(); // ...und in °C speichern
+    TimePrev = TimeNow;  // update time
+
     // Temperatur am LCD ausgeben
-    lcd.clear(); // Clear the screen
+    lcd.setCursor(0, 0);
     lcd.print(Temperatur); 
     lcd.print(" ");
     lcd.print((char)223);
     lcd.print("C");
-
-    lcd.setCursor(0,1); // neue Zeile
-    lcd.print(SollTemperatur); 
-    lcd.print(" ");
-    lcd.print((char)223);
-    lcd.print("C");
-  
-    if(Temperatur < SollTemperatur - Delta){ // Einschalten
-      pinMode(PowerPin, HIGH);
-    } else if (Temperatur > SollTemperatur + Delta) { // Ausschalten
-      pinMode(PowerPin, LOW);
-    }  
   }
-  delay(1000);
+
+  // Heitzung steuern
+  if (Temperatur > Temp_Off) { // Ausschalten
+    PowerState = 0;
+  } else if(Temperatur < Temp_On){ // Einschalten
+    if (PowerState == 0) {Cyclen++;}
+    PowerState = 1;
+  } 
+
+  pinMode(PowerPin, PowerState);
 }
