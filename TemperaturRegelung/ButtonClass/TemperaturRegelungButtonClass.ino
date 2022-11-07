@@ -21,7 +21,7 @@
 #define ONE_WIRE_BUS 2
 
 // Zuweisung der Anschlüsse
-LCD_I2C lcd(0x27); //, 16, 2); //A4 und A5 für SDA und SCL
+LCD_I2C lcd(0x27); A4 und A5 für SDA und SCL
 // LiquidCrystal_I2C lcd(0x27,2,1,0,4,5,6,7,3,POSITIVE);
 
 OneWire oneWire(ONE_WIRE_BUS);
