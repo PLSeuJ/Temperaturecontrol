@@ -37,7 +37,7 @@ Der Verkauf des Programms oder Teile von diesem ist nicht gestattet.
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char[7] VersNr = "V1.0.0"
+const char VersNr[7] = "V1.0.0";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
@@ -78,6 +78,9 @@ unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek
 unsigned long TimeNow;
 unsigned long TimePrev;
 
+
+//misc
+char timearray[12]; // here runtime is saved in format dd:hh:mm:ss
 unsigned long Cyclen = 0;  // Anzahl der Einschaltvorgänge
 
 //Programm start
@@ -109,8 +112,8 @@ void setup()
   lcd.clear();  // Bildschirmausgaben löschen und Curor auf 0,0 setzen
 }
 
-
-int [4] GetRunTime(Timenow=millis())
+/*
+void GetRunTime(Timenow=millis(), timearray)
 // return string of Timenow in format dd:hh:mm:ss 
 {
   unsigned long currentMillis = millis();
@@ -123,49 +126,29 @@ int [4] GetRunTime(Timenow=millis())
   minutes %= 60;
   hours %= 24;
 
-  return {days, hours, minutes, seconds} 
+  //{days, hours, minutes, seconds} 
 }
-
-
-char[12] GetRunTime(Timenow=millis())
-// return string of Timenow in format dd:hh:mm:ss 
-{
-  unsigned long currentMillis = millis();
-  unsigned long seconds = currentMillis / 1000;
-  unsigned long minutes = seconds / 60;
-  unsigned long hours = minutes / 60;
-  unsigned long days = hours / 24;
-  currentMillis %= 1000;
-  seconds %= 60;
-  minutes %= 60;
-  hours %= 24;
-
-  string = "dd:hh:mm:ss"
-
-  return string 
-}
-
+*/
 
 void NotAus() 
 /* Schaltet Heitzung aus und druckt Fehler-Meldung */
 {
-  char[12] runtime;
   PowerState = 0;
   pinMode(PowerPin, PowerState);
-
-  runtime = GetRunTime(millis());
-  char [] message = "Temperaturfehler detecktiert; wahrscheinliche Laufzeit bei Fehlerauftritt:" + 
-                    runtime + 
-                    "; Temperatursensor überprüfen; für Neustart 'reset'-Taste drücken."
+/*
+  char message[] = "Temperaturfehler detecktiert; wahrscheinliche Laufzeit bei Fehlerauftritt: " + 
+                    timearray + 
+                    " ; Temperatursensor überprüfen; für Neustart 'reset'-Taste drücken."
+  */
   lcd.clear();
   lcd.print("Not Abbruch");
-  lcd.setCursor(0,1);
-  lcd.autoscroll();
-  lcd.print(message);
+  //lcd.setCursor(0,1);
+  //lcd.autoscroll();
+  //lcd.print(message);
 }
 
 
-flt Messung(void)
+float Messung(void)
 /* Misst Temperatur und gibt Temperatur in °C zurück. */
 {
   sensors.requestTemperatures(); // Temperatur anfragen
@@ -174,10 +157,10 @@ flt Messung(void)
 }
 
 
-flt SichereMessung(void)
+float SichereMessung(void)
 /* Bricht Heitzen ab, bei 10 ungültigen Messungen*/
 {
-  for (int i=0, i==10, i++) {
+  for (int i=0; i==10; i++) {
     Temperatur = Messung();
     if(Temperatur > 0 or Temperatur < 50) {
       return Temperatur;  // erfolgreiche Messung
@@ -185,41 +168,7 @@ flt SichereMessung(void)
   }
 
   NotAus();
-  return 999
-}
-
-
-int CheckAction() 
-/*
-*/ {
-  while(Temperatur < 0 or Temperatur > 50){ // Abbruchkriterium wegen falscher Messung
-    Temperatur = Messung()
-    PowerState = 0;
-    
-    lcd.clear(); // Clear the screen
-    lcd.print("press reset");
-    lcd.blink(); // Blinke mit dem Cursor
-    
-    Serial.print("Abbruch");
-    
-  } else { // Normale Temperaturausgabe
-
-    Serial.println(Temperatur); // Serielle Ausgabe des Temperaturwerts
-
-    // Temperatur am LCD ausgeben
-    lcd.clear(); // Clear the screen
-    lcd.print(Temperatur); 
-    lcd.print(" ");
-    lcd.print((char)223);
-    lcd.print("C");
-  
-    if(Temperatur < SollMin){ // Einschalten
-      PowerState = 1;    
-      } else if (Temperatur > SollMax) { // Ausschalten
-      PowerState = 0;
-    }    
-  }
-  return PowerState;
+  return 999;
 }
 
 
@@ -227,8 +176,11 @@ int CheckAction()
 void loop(){
   TimeNow = millis();
   if (TimeNow - TimePrev >= Messintervall) {
-    Temperatur = Messung();
-    PowerState = CheckAction();
+    if (Messung() < Temp_Soll) {
+      PowerState = 1;
+    } else {
+      PowerState = 0;
+    }
     pinMode(PowerPin, PowerState);
 
     TimePrev = TimeNow;
