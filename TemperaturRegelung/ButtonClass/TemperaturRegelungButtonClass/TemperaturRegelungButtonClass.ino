@@ -2,7 +2,7 @@
 Temperatur Regelung Menü
 Version: V0.5
 created: 29.01.2021
-last edit: 16.04.2021
+last edit: 10.12.2022
 author: Jonathan Schumann
 mail: jonathanschumann@gmx.de
 
@@ -15,7 +15,7 @@ Hier ist die Testumgebung für die Menü-Programmierung
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[7] = "V1.0.0";
+const char VersNr[7] = "V0.8.0";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
