@@ -43,7 +43,9 @@ float Temp_Off = 30;  // Ausschalttemperatur für Lampe in °C
 // Zeit
 unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek 
 unsigned long TimeNow;
-unsigned long TimePrev;
+unsigned long TimePrev = -9999;  // force imediate measurenment
+unsigned long TimeOfLastInput = 0;  // global variabel to keep trak of last action
+const unsigned int DisplayStandBy = 30000;  // 
 
 //misc
 char timearray[12]; // here runtime is saved in format dd:hh:mm:ss
@@ -67,6 +69,10 @@ class Button {
       pinMode(pin, INPUT_PULLUP);
       update();
     }
+    bool event() {
+      return update();
+    }
+
     void update() {
       // You can handle the debounce of the button directly
       // in the class, so you don't have to think about it
@@ -89,7 +95,7 @@ class Button {
     bool isPressed() {
       return (getState() == LOW);
     }
-}; // don't forget the semicolon at the end of the class
+};  // don't forget the semicolon at the end of the class
 
 
 Button Button_up(4);
@@ -128,11 +134,29 @@ float Messung(void)
   return sensor.getTempCByIndex(0); // ...und in °C speichern
 }
 
+void Relais(bool PowerState) {
+  pinMode(PowerPin, PowerState);
+}
+
+
+void Heater(bool PowerState) {
+  Relais(PowerState);
+  
+  lcd.setCursor(10, 1);
+  if (PowerState) {
+    lcd.print("on ");
+  } else {
+    lcd.print("off");
+  }
+}
 
 // Programm
 void loop()
 {
   TimeNow = millis();
+  if (Button.Event()) {
+    TimeOfLastInput = TimeNow;
+  }
 
   lcd.setCursor(10, 0);
   if (Button_cancel.isPressed()) {
@@ -145,8 +169,15 @@ void loop()
     Temp_Off = Temp_Off - 0.1;
   } else if (Button_ok.isPressed()) {
     lcd.print("ok    ");
+    PowerState = 1;
   } else {
     lcd.print("void  ");
+  }
+
+  if (TimeNow - TimeOfLastInput < DisplayStandBy) {
+    lcd.backlight();
+  } else {
+    lcd.noBacklight();
   }
   
   Temp_Off = constrain(Temp_Off, 12, 50);
@@ -176,5 +207,5 @@ void loop()
     PowerState = 1;
   } 
 
-  pinMode(PowerPin, PowerState);
+  Heater(PowerState);
 }

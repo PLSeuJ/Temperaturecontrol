@@ -37,7 +37,7 @@ Der Verkauf des Programms oder Teile von diesem ist nicht gestattet.
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[7] = "V1.0.0";
+const char VersNr[7] = "V0.8.0";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
