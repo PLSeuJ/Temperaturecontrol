@@ -139,6 +139,15 @@ float Messung(void)
 }
 
 
+void lcdPrintTemp(float Temperatur)
+/*Prints Temperature at designated location*/
+{
+  lcd.setCursor(0, 0);
+  lcd.print("        ");
+  lcd.print(Temperatur);
+  lcd
+}
+
 // Programm
 void loop(){
   TimeNow = millis();
@@ -147,7 +156,7 @@ void loop(){
 
   if (TimeNow - TimePrev >= Messintervall) {  // time for a measurnement?
     Temperatur = Messung();
-    lcd.clear();
+    lcd.;
     lcd.print(Temperatur);
 
     if (Temperatur < Temp_On) {  // assert Temperature
