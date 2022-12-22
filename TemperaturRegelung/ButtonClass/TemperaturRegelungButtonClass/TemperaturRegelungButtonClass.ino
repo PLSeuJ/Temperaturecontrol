@@ -15,7 +15,7 @@ Hier ist die Testumgebung für die Menü-Programmierung
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[7] = "V0.8.0";
+const char VersNr[8] = "V0.8.10";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
@@ -45,7 +45,7 @@ unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek
 unsigned long TimeNow;
 unsigned long TimePrev = -9999;  // force imediate measurenment
 unsigned long TimeOfLastInput;  // global variabel to keep trak of last action
-const unsigned int DisplayStandBy = 3000;  // 
+const unsigned int DisplayStandBy = 30000;  // 
 
 //misc
 char timearray[12]; // here runtime is saved in format dd:hh:mm:ss
@@ -102,17 +102,18 @@ Button Button_cancel(3);
 
 
 void lcdBacklight(void)
-/* toggles lcd Backlight */ 
+/* toggles LCD Backlight */ 
 {
-  bool lcdBacklightStatus = false;
+  bool lcdBacklightStatus;
 
-  if ((TimeNow - TimeOfLastInput > DisplayStandBy)) {
-    lcd.noBacklight();
+  if (TimeNow - TimeOfLastInput >= DisplayStandBy) {
     lcdBacklightStatus = false;
-  } else if (!lcdBacklightStatus) {
-    lcd.backlight();
+    lcd.noBacklight();
+  } else {
     lcdBacklightStatus = true;
+    lcd.backlight();
   }
+
 }
 
 //Programm start
@@ -165,8 +166,6 @@ void Heater(bool PowerState) {
 // Programm
 void loop()
 {
-  TimeNow = millis();
-
   lcd.setCursor(10, 0);
   if (Button_cancel.isPressed()) {
     lcd.print("cancel");
@@ -182,9 +181,10 @@ void loop()
   } else {
     lcd.print("void  ");
   }
+  
+  TimeNow = millis();  // update time AFTER buttons, so last event is alsways prior to now.
 
   lcdBacklight();
-
 
   
   Temp_Off = constrain(Temp_Off, 12, 50);
