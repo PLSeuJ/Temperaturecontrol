@@ -78,7 +78,6 @@ class Button {
       if (newReading != lastReading) {
         lastDebounceTime = millis();
         TimeOfLastInput = lastDebounceTime;
-        lcd.backlight();
       }
       if (millis() - lastDebounceTime > debounceDelay) {
         // Update the 'state' attribute only if debounce is checked
@@ -152,6 +151,7 @@ void Heater(bool PowerState) {
 void loop()
 {
   TimeNow = millis();
+Serial.print('test');
 
   lcd.setCursor(10, 0);
   if (Button_cancel.isPressed()) {
@@ -169,9 +169,9 @@ void loop()
     lcd.print("void  ");
   }
 
-  if (TimeNow - TimeOfLastInput > DisplayStandBy) {
-    lcd.noBacklight();
-  }
+  // if (TimeNow - TimeOfLastInput > DisplayStandBy) {
+  //   lcd.noBacklight();
+  // }
   
   Temp_Off = constrain(Temp_Off, 12, 50);
   lcd.setCursor(0,1); // neue Zeile
