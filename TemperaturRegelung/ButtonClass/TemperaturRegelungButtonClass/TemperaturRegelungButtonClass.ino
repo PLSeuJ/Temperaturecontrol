@@ -44,8 +44,8 @@ float Temp_Off = 30;  // Ausschalttemperatur für Lampe in °C
 unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek 
 unsigned long TimeNow;
 unsigned long TimePrev = -9999;  // force imediate measurenment
-unsigned long TimeOfLastInput = 0;  // global variabel to keep trak of last action
-const unsigned int DisplayStandBy = 30000;  // 
+unsigned long TimeOfLastInput;  // global variabel to keep trak of last action
+const unsigned int DisplayStandBy = 3000;  // 
 
 //misc
 char timearray[12]; // here runtime is saved in format dd:hh:mm:ss
@@ -101,6 +101,20 @@ Button Button_ok(6);
 Button Button_cancel(3);
 
 
+void lcdBacklight(void)
+/* toggles lcd Backlight */ 
+{
+  bool lcdBacklightStatus = false;
+
+  if ((TimeNow - TimeOfLastInput > DisplayStandBy)) {
+    lcd.noBacklight();
+    lcdBacklightStatus = false;
+  } else if (!lcdBacklightStatus) {
+    lcd.backlight();
+    lcdBacklightStatus = true;
+  }
+}
+
 //Programm start
 void setup() {
   Serial.begin(9600); // Serielle Schnittstelle starten für einfacheres testen
@@ -116,8 +130,9 @@ void setup() {
   pinMode(PowerPin, OUTPUT);
   pinMode(PowerPin, LOW);
 
-  delay(1000);
+  TimeOfLastInput = millis(); // initiallize time
 
+  delay(1000);
   lcd.clear(); // Bildschirmausgaben löschen und Curor auf 0,0 setzen
 }
 
@@ -168,11 +183,9 @@ void loop()
     lcd.print("void  ");
   }
 
-  if (TimeNow - TimeOfLastInput < DisplayStandBy) {
-    lcd.backlight();
-  } else {
-    lcd.noBacklight();
-  }
+  lcdBacklight();
+
+
   
   Temp_Off = constrain(Temp_Off, 12, 50);
   lcd.setCursor(0,1); // neue Zeile
