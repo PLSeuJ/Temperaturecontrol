@@ -151,7 +151,6 @@ void Heater(bool PowerState) {
 void loop()
 {
   TimeNow = millis();
-Serial.print('test');
 
   lcd.setCursor(10, 0);
   if (Button_cancel.isPressed()) {
@@ -169,9 +168,11 @@ Serial.print('test');
     lcd.print("void  ");
   }
 
-  // if (TimeNow - TimeOfLastInput > DisplayStandBy) {
-  //   lcd.noBacklight();
-  // }
+  if (TimeNow - TimeOfLastInput < DisplayStandBy) {
+    lcd.backlight();
+  } else {
+    lcd.noBacklight();
+  }
   
   Temp_Off = constrain(Temp_Off, 12, 50);
   lcd.setCursor(0,1); // neue Zeile
