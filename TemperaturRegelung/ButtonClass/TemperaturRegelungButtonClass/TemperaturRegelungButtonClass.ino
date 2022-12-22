@@ -104,16 +104,11 @@ Button Button_cancel(3);
 void lcdBacklight(void)
 /* toggles LCD Backlight */ 
 {
-  bool lcdBacklightStatus;
-
   if (TimeNow - TimeOfLastInput >= DisplayStandBy) {
-    lcdBacklightStatus = false;
     lcd.noBacklight();
   } else {
-    lcdBacklightStatus = true;
     lcd.backlight();
   }
-
 }
 
 //Programm start
