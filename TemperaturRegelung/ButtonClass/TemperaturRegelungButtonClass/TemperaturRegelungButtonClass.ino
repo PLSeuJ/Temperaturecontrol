@@ -15,7 +15,7 @@ Hier ist die Testumgebung für die Menü-Programmierung
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[8] = "V0.8.10";
+const char VersNr[8] = "V0.8.11";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
@@ -142,13 +142,9 @@ float Messung(void)
   return sensor.getTempCByIndex(0); // ...und in °C speichern
 }
 
-void Relais(bool PowerState) {
-  pinMode(PowerPin, PowerState);
-}
-
 
 void Heater(bool PowerState) {
-  Relais(PowerState);
+  pinMode(PowerPin, PowerState);
   
   lcd.setCursor(10, 1);
   if (PowerState) {
