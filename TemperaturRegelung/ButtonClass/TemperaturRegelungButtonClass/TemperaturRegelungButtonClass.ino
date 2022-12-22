@@ -113,7 +113,7 @@ void lcdBacklight(void)
 
 //Programm start
 void setup() {
-  Serial.begin(9600); // Serielle Schnittstelle starten für einfacheres testen
+  Serial.begin(19200); // Serielle Schnittstelle starten für einfacheres testen
   
   sensor.begin(); // Temperatursensor konfigurieren
   
@@ -154,30 +154,40 @@ void Heater(bool PowerState) {
   }
 }
 
+
+void TimeToString(unsigned long millis, char seperator = ":") // make void a chat[12] Time
+/*returns Time in string in dd:hh:mm:ss format */
+{
+  int sec = millis/1000%60;
+  int min = millis/60000%60;
+  int hrs = millis/(60*60*1000)%24;
+  int day = millis/(24*60*60*1000);
+
+  Serial.print(day);
+  Serial.print(hrs);
+  Serial.print(min);
+  Serial.println(sec);
+
+  //return Time
+}
+
+
 // Programm
 void loop()
 {
-  lcd.setCursor(10, 0);
   if (Button_cancel.isPressed()) {
-    lcd.print("cancel");
   } else if (Button_up.isPressed()) {
-    lcd.print("up    ");
     Temp_Off = Temp_Off + 0.1;
   } else if (Button_down.isPressed()) {
-    lcd.print("down  ");
     Temp_Off = Temp_Off - 0.1;
   } else if (Button_ok.isPressed()) {
-    lcd.print("ok    ");
     PowerState = 1;
-  } else {
-    lcd.print("void  ");
   }
   
   TimeNow = millis();  // update time AFTER buttons, so last event is alsways prior to now.
 
   lcdBacklight();
 
-  
   Temp_Off = constrain(Temp_Off, 12, 50);
   lcd.setCursor(0,1); // neue Zeile
   lcd.print(Temp_Off); 
@@ -206,4 +216,6 @@ void loop()
   } 
 
   Heater(PowerState);
+
+  TimeToString(TimeNow);
 }
