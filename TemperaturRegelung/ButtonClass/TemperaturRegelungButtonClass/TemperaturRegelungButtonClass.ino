@@ -69,10 +69,6 @@ class Button {
       pinMode(pin, INPUT_PULLUP);
       update();
     }
-    bool event() {
-      return update();
-    }
-
     void update() {
       // You can handle the debounce of the button directly
       // in the class, so you don't have to think about it
@@ -81,6 +77,8 @@ class Button {
       
       if (newReading != lastReading) {
         lastDebounceTime = millis();
+        TimeOfLastInput = lastDebounceTime;
+        lcd.backlight();
       }
       if (millis() - lastDebounceTime > debounceDelay) {
         // Update the 'state' attribute only if debounce is checked
@@ -154,9 +152,6 @@ void Heater(bool PowerState) {
 void loop()
 {
   TimeNow = millis();
-  if (Button.Event()) {
-    TimeOfLastInput = TimeNow;
-  }
 
   lcd.setCursor(10, 0);
   if (Button_cancel.isPressed()) {
@@ -174,9 +169,7 @@ void loop()
     lcd.print("void  ");
   }
 
-  if (TimeNow - TimeOfLastInput < DisplayStandBy) {
-    lcd.backlight();
-  } else {
+  if (TimeNow - TimeOfLastInput > DisplayStandBy) {
     lcd.noBacklight();
   }
   
