@@ -10,24 +10,45 @@ a comment on what time if not current runtime
 Main: 
 Temperature, heating/cooling to temperature, runtime, on/off
 "1234567890123456"
-1TT.T°C dd:hh:mm        
-2TT.T°C      off
+1TT.T°C dd:hh:mm "       
+2TT.T°C      off "
 "1234567890123456"
-1TT.T°C  dd:hh:mm        
+1TT.T°C  dd:hh:mm"        
 2TT.T°C x  tt.t°C" x shall indicate heating
 
 	>OK: start (toggle A to B)
 	>Up: obere temperatur ändern 
 	>Dn: unterse temperatur ändern
 	>Cl: stop (TOGGLE B to A)
+		[give baute rate and try to establish a serial conection]
 
 
 Temperatur ändern:
 "1234567890123456"
-1set Temp off
-2TT.T°C 
+1T_max/aus ändern"  1T_min/an ändern
+2TT.T°C          "
 
 	>OK: save T and back to main
 	>Up: increase temp
 	>Dn: decrease temp
 	>Cl: back to main
+
+
+confirm Temperatur:
+"1234567890123456"
+1 T_max =? TT.T°C
+2 T_min =? TT.T°C
+
+	>OK: save & back to main
+	>Cl: back to Temperatur ändern
+
+
+Serail connection:
+"1234567890123456"
+"Baute = xxxxx   "
+"...             " connected
+
+	>OK: back to main
+	>Up: increase Baute (if not connected)
+	>Dn: decrease Baute (if not connected)
+	>Cl: end serial connection & back to main
