@@ -1,4 +1,4 @@
-#include "ButtonClass.h"
+#include <Button.h>
 
     Button::Button(byte pin) {
       this->pin = pin;

@@ -1,7 +1,5 @@
-#ifndef MENU_H
-#define MENU_H
+#include <Menu.h>
 
-#include <Arduino.h>
 
 Menu::Menu() {
 
