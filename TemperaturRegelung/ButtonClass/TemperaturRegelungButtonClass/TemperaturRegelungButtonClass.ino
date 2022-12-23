@@ -2,7 +2,7 @@
 Temperatur Regelung Menü
 Version: V0.5
 created: 29.01.2021
-last edit: 10.12.2022
+last edit: 23.12.2022
 author: Jonathan Schumann
 mail: jonathanschumann@gmx.de
 
@@ -50,6 +50,12 @@ const unsigned int DisplayStandBy = 30000;  //
 //misc
 char timearray[12]; // here runtime is saved in format dd:hh:mm:ss
 unsigned long Cyclen = 0;  // Anzahl der Einschaltvorgänge
+
+//menu related variables
+int lastframe = 999;
+int menutitle = 0;
+int priormenu = 999;
+
 
 
 class Button {
@@ -172,16 +178,49 @@ void TimeToString(unsigned long millis, char seperator = ":") // make void a cha
 }
 
 
+void LCDbuildMain(void) {
+  lcd.clear();
+  lcd.print(Temp_Off, 1); 
+  lcd.print((char)223);
+  lcd.print("C");
+
+  lcd.setCursor(0, 1);
+  lcd.print(Temp_On, 1); 
+  lcd.print((char)223);
+  lcd.print("C ");
+
+  LCDupdateMain();
+
+}
+
+
+void LCDupdateMain(void) {
+  lcd.setCursor(8, 1);
+    if (PowerState) {
+    lcd.print("^");
+  } else {
+    lcd.print("v");
+  }
+
+  lcd.print(" ");
+  lcd.print(Temperatur, 1);
+  lcd.print((char)223);
+  lcd.print("C ");
+  delay(10);
+}
+
+
 // Programm
 void loop()
 {
-  if (Button_cancel.isPressed()) {
-  } else if (Button_up.isPressed()) {
-    Temp_Off = Temp_Off + 0.1;
-  } else if (Button_down.isPressed()) {
-    Temp_Off = Temp_Off - 0.1;
-  } else if (Button_ok.isPressed()) {
-    PowerState = 1;
+  switch(menutitle) {
+    default:
+      if (lastframe != menutitle) {
+        LCDbuildMain();
+        lastframe = menutitle;
+      }
+        LCDupdateMain();
+      break;
   }
   
   TimeNow = millis();  // update time AFTER buttons, so last event is alsways prior to now.
@@ -189,23 +228,6 @@ void loop()
   lcdBacklight();
 
   Temp_Off = constrain(Temp_Off, 12, 50);
-  lcd.setCursor(0,1); // neue Zeile
-  lcd.print(Temp_Off); 
-  lcd.print(" ");
-  lcd.print((char)223);
-  lcd.print("C");
-
-  if (TimeNow - TimePrev >= Messintervall) {  // time for a measurnement?
-    Temperatur = Messung(); // ...und in °C speichern
-    TimePrev = TimeNow;  // update time
-
-    // Temperatur am LCD ausgeben
-    lcd.setCursor(0, 0);
-    lcd.print(Temperatur); 
-    lcd.print(" ");
-    lcd.print((char)223);
-    lcd.print("C");
-  }
 
   // Heitzung steuern
   if (Temperatur > Temp_Off) { // Ausschalten
