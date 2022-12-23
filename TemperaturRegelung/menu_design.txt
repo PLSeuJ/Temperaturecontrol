@@ -46,9 +46,7 @@ confirm Temperatur:
 Serail connection:
 "1234567890123456"
 "Baute = xxxxx   "
-"...             " connected
+"VX.X.XX.XX      "
 
 	>OK: back to main
-	>Up: increase Baute (if not connected)
-	>Dn: decrease Baute (if not connected)
-	>Cl: end serial connection & back to main
+	>Cl: back to main
