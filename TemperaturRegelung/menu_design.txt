@@ -1,0 +1,33 @@
+//
+- Time is indicated in formate like dd:hh:mm:ss and 
+a comment on what time if not current runtime
+- temperature is indicated with:
+	T for set values and 
+	t for measurnments
+//
+
+
+Main: 
+Temperature, heating/cooling to temperature, runtime, on/off
+"1234567890123456"
+1TT.T°C dd:hh:mm        
+2TT.T°C      off
+"1234567890123456"
+1TT.T°C  dd:hh:mm        
+2TT.T°C x  tt.t°C" x shall indicate heating
+
+	>OK: start (toggle A to B)
+	>Up: obere temperatur ändern 
+	>Dn: unterse temperatur ändern
+	>Cl: stop (TOGGLE B to A)
+
+
+Temperatur ändern:
+"1234567890123456"
+1set Temp off
+2TT.T°C 
+
+	>OK: save T and back to main
+	>Up: increase temp
+	>Dn: decrease temp
+	>Cl: back to main
