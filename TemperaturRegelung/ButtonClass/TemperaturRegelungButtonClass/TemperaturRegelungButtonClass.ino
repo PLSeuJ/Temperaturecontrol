@@ -20,7 +20,7 @@ const char VersNr[8] = "V0.8.11";
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
 const int SensorPin = 2;  // Digital Pin für digitales Eingangssignal
-const int PowerPin = 7;  // Digital Pin für digitales Ausgangssignal
+const int PowerPin = 7;   // Digital Pin für digitales Ausgangssignal
 //const int VanClockPin = 9;
 //const int VanControlPin = 10;
 
@@ -34,21 +34,21 @@ DallasTemperature sensor(&oneWire);
 bool PowerState = 0;
 
 // Temperatur
-float MesswertTemperatur = 0; // Rohwert für Temperatur
-float Temperatur = 0; // Temperatur in °C
-float Temp_On = 28;  // Einschalttemperatur für Lampe in °C
-float Temp_Off = 30;  // Ausschalttemperatur für Lampe in °C
+float MesswertTemperatur = 0;  // Rohwert für Temperatur
+float Temperatur = 0;          // Temperatur in °C
+float Temp_On = 28;            // Einschalttemperatur für Lampe in °C
+float Temp_Off = 30;           // Ausschalttemperatur für Lampe in °C
 // Temp_Off = Temp_Soll + Temp_Delta;  // <--Wenn Wärmeübergang bekannt kann so der Aufheitzvorgang beschleunigt werden
 
 // Zeit
-unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek 
+unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek
 unsigned long TimeNow;
-unsigned long TimePrev = -9999;  // force imediate measurenment
-unsigned long TimeOfLastInput;  // global variabel to keep trak of last action
-const unsigned int DisplayStandBy = 30000;  // 
+unsigned long TimePrev = -9999;             // force imediate measurenment
+unsigned long TimeOfLastInput;              // global variabel to keep trak of last action
+const unsigned int DisplayStandBy = 30000;  //
 
 //misc
-char timearray[12]; // here runtime is saved in format dd:hh:mm:ss
+char timearray[12];        // here runtime is saved in format dd:hh:mm:ss
 unsigned long Cyclen = 0;  // Anzahl der Einschaltvorgänge
 
 //menu related variables
@@ -59,45 +59,45 @@ int priormenu = 999;
 
 
 class Button {
-  private:
-    byte pin;
-    byte state;
-    byte lastReading;
-    unsigned long lastDebounceTime = 0;
-    unsigned long debounceDelay = 75;
-  public:
-    Button(byte pin) {
-      this->pin = pin;
-      lastReading = LOW;
-      init();
+private:
+  byte pin;
+  byte state;
+  byte lastReading;
+  unsigned long lastDebounceTime = 0;
+  unsigned long debounceDelay = 75;
+public:
+  Button(byte pin) {
+    this->pin = pin;
+    lastReading = LOW;
+    init();
+  }
+  void init() {
+    pinMode(pin, INPUT_PULLUP);
+    update();
+  }
+  void update() {
+    // You can handle the debounce of the button directly
+    // in the class, so you don't have to think about it
+    // elsewhere in your code
+    byte newReading = digitalRead(pin);
+
+    if (newReading != lastReading) {
+      lastDebounceTime = millis();
+      TimeOfLastInput = lastDebounceTime;
     }
-    void init() {
-      pinMode(pin, INPUT_PULLUP);
-      update();
+    if (millis() - lastDebounceTime > debounceDelay) {
+      // Update the 'state' attribute only if debounce is checked
+      state = newReading;
     }
-    void update() {
-      // You can handle the debounce of the button directly
-      // in the class, so you don't have to think about it
-      // elsewhere in your code
-      byte newReading = digitalRead(pin);
-      
-      if (newReading != lastReading) {
-        lastDebounceTime = millis();
-        TimeOfLastInput = lastDebounceTime;
-      }
-      if (millis() - lastDebounceTime > debounceDelay) {
-        // Update the 'state' attribute only if debounce is checked
-        state = newReading;
-      }
-      lastReading = newReading;
-    }
-    byte getState() {
-      update();
-      return state;
-    }
-    bool isPressed() {
-      return (getState() == LOW);
-    }
+    lastReading = newReading;
+  }
+  byte getState() {
+    update();
+    return state;
+  }
+  bool isPressed() {
+    return (getState() == LOW);
+  }
 };  // don't forget the semicolon at the end of the class
 
 
@@ -108,7 +108,7 @@ Button Button_cancel(3);
 
 
 void lcdBacklight(void)
-/* toggles LCD Backlight */ 
+/* toggles LCD Backlight */
 {
   if (TimeNow - TimeOfLastInput >= DisplayStandBy) {
     lcd.noBacklight();
@@ -119,23 +119,23 @@ void lcdBacklight(void)
 
 //Programm start
 void setup() {
-  Serial.begin(19200); // Serielle Schnittstelle starten für einfacheres testen
-  
-  sensor.begin(); // Temperatursensor konfigurieren
-  
-  lcd.begin(); // startet den LCD Bidschirm
-  lcd.clear(); // Bildschirmausgaben löschen und Curor auf 0,0 setzen
-  lcd.backlight(); // Hintergrundbeleuchtung einschalten
+  Serial.begin(19200);  // Serielle Schnittstelle starten für einfacheres testen
+
+  sensor.begin();  // Temperatursensor konfigurieren
+
+  lcd.begin();      // startet den LCD Bidschirm
+  lcd.clear();      // Bildschirmausgaben löschen und Curor auf 0,0 setzen
+  lcd.backlight();  // Hintergrundbeleuchtung einschalten
   lcd.print(VersNr);
 
   pinMode(SensorPin, INPUT);
   pinMode(PowerPin, OUTPUT);
   pinMode(PowerPin, LOW);
 
-  TimeOfLastInput = millis(); // initiallize time
+  TimeOfLastInput = millis();  // initiallize time
 
   delay(1000);
-  lcd.clear(); // Bildschirmausgaben löschen und Curor auf 0,0 setzen
+  lcd.clear();  // Bildschirmausgaben löschen und Curor auf 0,0 setzen
 }
 
 
@@ -143,15 +143,15 @@ void setup() {
 float Messung(void)
 /* Misst Temperatur und gibt Temperatur in °C zurück. */
 {
-  sensor.requestTemperatures(); // Temperatur anfragen
-  MesswertTemperatur = analogRead(SensorPin); // Temperatur auslesen...
-  return sensor.getTempCByIndex(0); // ...und in °C speichern
+  sensor.requestTemperatures();                // Temperatur anfragen
+  MesswertTemperatur = analogRead(SensorPin);  // Temperatur auslesen...
+  return sensor.getTempCByIndex(0);            // ...und in °C speichern
 }
 
 
 void Heater(bool PowerState) {
   pinMode(PowerPin, PowerState);
-  
+
   lcd.setCursor(10, 1);
   if (PowerState) {
     lcd.print("on ");
@@ -161,13 +161,13 @@ void Heater(bool PowerState) {
 }
 
 
-void TimeToString(unsigned long millis, char seperator = ":") // make void a chat[12] Time
+void TimeToString(unsigned long millis, char seperator = ":")  // make void a chat[12] Time
 /*returns Time in string in dd:hh:mm:ss format */
 {
-  int sec = millis/1000%60;
-  int min = millis/60000%60;
-  int hrs = millis/(60*60*1000)%24;
-  int day = millis/(24*60*60*1000);
+  int sec = millis / 1000 % 60;
+  int min = millis / 60000 % 60;
+  int hrs = millis / (60 * 60 * 1000) % 24;
+  int day = millis / (24 * 60 * 60 * 1000);
 
   Serial.print(day);
   Serial.print(hrs);
@@ -177,68 +177,130 @@ void TimeToString(unsigned long millis, char seperator = ":") // make void a cha
   //return Time
 }
 
+// LCD Menu Frames -------------------------------------------------
 
 void LCDbuildMain(void) {
   lcd.clear();
-  lcd.print(Temp_Off, 1); 
+  lcd.print(Temp_Off, 1);
   lcd.print((char)223);
   lcd.print("C");
 
   lcd.setCursor(0, 1);
-  lcd.print(Temp_On, 1); 
+  lcd.print(Temp_On, 1);
   lcd.print((char)223);
   lcd.print("C ");
-
-  LCDupdateMain();
-
 }
 
 
 void LCDupdateMain(void) {
-  lcd.setCursor(8, 1);
+  bool prevState;
+  float prevTemp;
+
+  if (PowerState != prevState) {
+    lcd.setCursor(8, 1);
     if (PowerState) {
-    lcd.print("^");
-  } else {
-    lcd.print("v");
+      lcd.print("^");
+    } else {
+      lcd.print("v");
+    }
+    prevState = PowerState;
   }
 
-  lcd.print(" ");
-  lcd.print(Temperatur, 1);
-  lcd.print((char)223);
-  lcd.print("C ");
-  delay(10);
+  if (Temperatur != prevTemp) {
+    prevTemp = Temperatur;
+    lcd.print(" ");
+    lcd.print(Temperatur, 1);
+    lcd.print((char)223);
+    lcd.print("C ");
+  }
 }
 
 
-// Programm
-void loop()
-{
-  switch(menutitle) {
-    case[0]:  // mainmenu
+void LCDbuildConfirm() {
+  lcd.clear();
+  lcd.print("Confirm page");
+}
 
-    case[1]:  // set 
-    default:
+
+void LCDbuildSetUpper() {
+  lcd.clear();
+  lcd.print("Set Temp upper");
+}
+
+
+void LCDbuildSetLower() {
+  lcd.clear();
+  lcd.print("Set Temp lower");
+}
+
+// Programm ---------------------------------------------------
+void loop() {
+  switch (menutitle) {
+    case 0:  // mainmenu
       if (lastframe != menutitle) {
         LCDbuildMain();
         lastframe = menutitle;
       }
-        LCDupdateMain();
-      break;
+      LCDupdateMain();
+
+      if (Button_ok.getState())
+        ;                                         // --> Mainmenu
+      if (Button_down.getState()) menutitle = 2;  // --> set lower Temp
+      if (Button_up.getState()) menutitle = 1;    // --> set upper Temp
+      if (Button_cancel.getState())
+        ;  // --> Mainmenu
+
+    // case 1:  // Set Upper Temperatur
+    //   LCDbuildSetUpper();
+    //   lastframe = menutitle;
+
+    //   if (Button_ok.getState()) menutitle = 3;  // --> confirm
+    //   if (Button_down.getState())
+    //     ;  // --> Mainmenu
+    //   if (Button_up.getState())
+    //     ;                                           // --> Mainmenu
+    //   if (Button_cancel.getState()) menutitle = 0;  // --> Mainmenu
+
+    // case 2:  // Set Lower Temperature
+    //   LCDbuildSetLower();
+    //   lastframe = menutitle;
+
+    //   if (Button_ok.getState()) menutitle = 3;  // --> confirm
+    //   if (Button_down.getState())
+    //     ;  // --> x
+    //   if (Button_up.getState())
+    //     ;                                           // --> x
+    //   if (Button_cancel.getState()) menutitle = 0;  // --> Mainmenu
+
+    // case 3:  // confirm
+    //   LCDbuildConfirm();
+    //   lastframe = menutitle;
+
+    //   if (Button_ok.getState()) menutitle = 0;  // --> Mainmenu
+    //   if (Button_down.getState())
+    //     ;  // --> x
+    //   if (Button_up.getState())
+    //     ;                                           // --> x
+    //   if (Button_cancel.getState()) menutitle = 0;  // --> Mainmenu
+    default:
+      menutitle = 0;
   }
-  
+
   TimeNow = millis();  // update time AFTER buttons, so last event is alsways prior to now.
 
   lcdBacklight();
 
   Temp_Off = constrain(Temp_Off, 12, 50);
 
+  Temperatur = 23; // Messung();
+
   // Heitzung steuern
-  if (Temperatur > Temp_Off) { // Ausschalten
+  if (Temperatur > Temp_Off) {  // Ausschalten
     PowerState = 0;
-  } else if(Temperatur < Temp_On){ // Einschalten
-    if (PowerState == 0) {Cyclen++;}
+  } else if (Temperatur < Temp_On) {  // Einschalten
+    if (PowerState == 0) { Cyclen++; }
     PowerState = 1;
-  } 
+  }
 
   Heater(PowerState);
 
