@@ -214,6 +214,9 @@ void LCDupdateMain(void) {
 void loop()
 {
   switch(menutitle) {
+    case[0]:  // mainmenu
+
+    case[1]:  // set 
     default:
       if (lastframe != menutitle) {
         LCDbuildMain();
@@ -239,5 +242,5 @@ void loop()
 
   Heater(PowerState);
 
-  TimeToString(TimeNow);
+  //TimeToString(TimeNow);
 }
