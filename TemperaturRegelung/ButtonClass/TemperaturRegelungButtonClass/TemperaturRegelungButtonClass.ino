@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------
 Temperatur Regelung Menü
-Version: V0.5
+Version: V0.9
 created: 29.01.2021
 last edit: 23.12.2022
 author: Jonathan Schumann
@@ -15,7 +15,7 @@ Hier ist die Testumgebung für die Menü-Programmierung
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[8] = "V0.8.11";
+const char VersNr[8] = "V0.9.00";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
@@ -39,12 +39,14 @@ float MesswertTemperatur = 0;  // Rohwert für Temperatur
 float Temperatur = 0;          // Temperatur in °C
 float Temp_On = 28;            // Einschalttemperatur für Lampe in °C
 float Temp_Off = 30;           // Ausschalttemperatur für Lampe in °C
-float setTemp;
+float setTemp_Off = Temp_Off;
+float setTemp_On = Temp_On;
 // Temp_Off = Temp_Soll + Temp_Delta;  // <--Wenn Wärmeübergang bekannt kann so der Aufheitzvorgang beschleunigt werden
 
 // Zeit
 unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek
 unsigned long TimeNow;
+unsigned long entry_time;                   // when was the menuframe entered?
 unsigned long TimePrev = -9999;             // force imediate measurenment
 unsigned long TimeOfLastInput;              // global variabel to keep trak of last action
 const unsigned int DisplayStandBy = 30000;  //
@@ -220,21 +222,15 @@ void LCDupdateMain(void) {
 }
 
 
-void LCDbuildConfirm() {
-  lcd.clear();
-  lcd.print("Confirm page");
-}
-
-
-void LCDbuildSetTemp(float T1, float T2, int select) {
+void LCDbuildSetTemp(int select) {
   lcd.clear();
   lcd.print(" ");
-  lcd.print(T1, 1);
+  lcd.print(setTemp_Off, 1);
   lcd.print((char)223);
   lcd.print("C");
 
   lcd.setCursor(1, 1);
-  lcd.print(T2, 1);
+  lcd.print(setTemp_On, 1);
   lcd.print((char)223);
   lcd.print("C ");
 
@@ -244,41 +240,34 @@ void LCDbuildSetTemp(float T1, float T2, int select) {
 }
 
 
-void LCDupdateSetTemp(float Tset, float T2, bool select) {
-  lcd.setCursor(1, (int)select);
-  lcd.print(Tset, 1);
-
-  // check if limit is exeeded
-  lcd.setCursor(1, (int)!select);
-  switch (select) {
-    case 0: 
-      if(Tset < T2) {
-        lcd.print(Tset, 1);
-      } else {
-        lcd.print(T2, 1);
-      } 
-      break;
-    case 1: 
-      if(Tset > T2) {
-        lcd.print(Tset, 1);
-      } else {
-        lcd.print(T2, 1);
-      } 
-      break;
+void LCDupdateSetTemp(int select) {
+  if (setTemp_Off < setTemp_On) {
+    switch (select) {
+      case 0:
+        setTemp_On = setTemp_Off;
+        break;
+      case 1:
+        setTemp_Off = setTemp_On;
+        break;
+    }
   }
+  lcd.setCursor(1, 0);
+  lcd.print(setTemp_Off, 1);
+  lcd.setCursor(1, 1);
+  lcd.print(setTemp_On, 1);
 }
 
 
-void LCDbuildConfirm(float T1, float T2) {
+void LCDbuildConfirm() {
   lcd.clear();
-  lcd.print("OFF: ");
-  lcd.print(T1,1);
+  lcd.print("aus: ");
+  lcd.print(setTemp_Off, 1);
   lcd.print((char)223);
   lcd.print("C ?");
 
   lcd.setCursor(0, 1);
-  lcd.print(" ON: ");
-  lcd.print(T2, 1);
+  lcd.print(" an: ");
+  lcd.print(setTemp_On, 1);
   lcd.print((char)223);
   lcd.print("C ?");
 }
@@ -291,6 +280,9 @@ void loop() {
       if (lastframe != menutitle) {
         LCDbuildMain();
         lastframe = menutitle;
+        entry_time = millis();
+        setTemp_Off = Temp_Off;
+        setTemp_On = Temp_On;
       }
       LCDupdateMain();
       lcd.setCursor(10,0);
@@ -300,11 +292,9 @@ void loop() {
       lcd.print("ok   ");
     } else if (Button_down.getState()) { // --> set lower Temp
       menutitle = 2;
-      setTemp = Temp_On;
       lcd.print("down ");
     } else if (Button_up.getState()) { // --> set upper Temp
       menutitle = 1;
-      setTemp = Temp_Off;
       lcd.print("up   ");
     } else if (Button_cancel.getState()) { // --> Mainmenu
       controlerstate = false;
@@ -317,11 +307,13 @@ void loop() {
 
     case 1:  // Set Upper Temperatur
       if (lastframe != menutitle) {
-        LCDbuildSetTemp(setTemp, Temp_On, 0);
+        LCDbuildSetTemp(0);
         lastframe = menutitle;
+        entry_time = millis();
+      } else {
+        LCDupdateSetTemp(0);
       }
-      
-      LCDupdateSetTemp(setTemp, Temp_On, 0);
+
 
       lcd.setCursor(10,0);
       if (Button_ok.getState()) { // --> Mainmenu
@@ -329,10 +321,10 @@ void loop() {
         menutitle = 3;
         lcd.print("ok   ");
       } else if (Button_down.getState()) { // --> set lower Temp
-        setTemp -= 0.01;
+        setTemp_Off -= 0.01;
         lcd.print("down ");
       } else if (Button_up.getState()) { // --> set upper Temp
-        setTemp += 0.01;
+        setTemp_Off += 0.01;
         lcd.print("up   ");
       } else if (Button_cancel.getState()) { // --> Mainmenu
         priormenu = menutitle;
@@ -345,11 +337,13 @@ void loop() {
 
     case 2:  // Set Lower Temperature
       if (lastframe != menutitle) {
-        LCDbuildSetTemp(setTemp, Temp_Off, 1);
+        LCDbuildSetTemp(1);
         lastframe = menutitle;
+        entry_time = millis();
+      } else {
+        LCDupdateSetTemp(1);
       }
       
-      LCDupdateSetTemp(setTemp, Temp_Off, 1);
 
       lcd.setCursor(10,0);
       if (Button_ok.getState()) { // --> Mainmenu
@@ -357,10 +351,10 @@ void loop() {
         menutitle = 3;
         lcd.print("ok   ");
       } else if (Button_down.getState()) { // --> set lower Temp
-        setTemp -= 0.01;
+        setTemp_On -= 0.01;
         lcd.print("down ");
       } else if (Button_up.getState()) { // --> set upper Temp
-        setTemp += 0.01;
+        setTemp_On += 0.01;
         lcd.print("up   ");
       } else if (Button_cancel.getState()) { // --> Mainmenu
         priormenu = menutitle;
@@ -374,10 +368,11 @@ void loop() {
 
     case 3:  // confirm
       if (lastframe != menutitle) {
-        LCDbuildConfirm(setTemp_Off, setTemp_On);
+        LCDbuildConfirm();
         lastframe = menutitle;
+        entry_time = millis();
       }
-      delay(1000);  // avoid direct button response
+
       lcd.setCursor(10,0);
       if (Button_ok.getState()) {  // --> Mainmenu
         Temp_Off = setTemp_Off;
