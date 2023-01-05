@@ -266,14 +266,11 @@ void LCDupdateSetTemp(float Tset, float T2, bool select) {
       } 
       break;
   }
-
-  }
+}
 
 
 // Programm ---------------------------------------------------
 void loop() {
-
-
   switch (menutitle) {
     case 0:  // mainmenu
       if (lastframe != menutitle) {
@@ -320,7 +317,6 @@ void loop() {
         setTemp -= 0.01;
         lcd.print("down ");
       } else if (Button_up.getState()) { // --> set upper Temp
-        menutitle = 1;
         setTemp += 0.01;
         lcd.print("up   ");
       } else if (Button_cancel.getState()) { // --> Mainmenu
@@ -332,16 +328,33 @@ void loop() {
       }
       break;
 
-    // case 2:  // Set Lower Temperature
-    //   LCDbuildSetLower();
-    //   lastframe = menutitle;
+    case 2:  // Set Lower Temperature
+      if (lastframe != menutitle) {
+        LCDbuildSetTemp(setTemp, Temp_Off, 1);
+        lastframe = menutitle;
+      }
+      
+      LCDupdateSetTemp(setTemp, Temp_Off, 1);
 
-    //   if (Button_ok.getState()) menutitle = 3;  // --> confirm
-    //   if (Button_down.getState())
-    //     ;  // --> x
-    //   if (Button_up.getState())
-    //     ;                                           // --> x
-    //   if (Button_cancel.getState()) menutitle = 0;  // --> Mainmenu
+      lcd.setCursor(10,0);
+      if (Button_ok.getState()) { // --> Mainmenu
+        priormenu = menutitle;
+        menutitle = 3;
+        lcd.print("ok   ");
+      } else if (Button_down.getState()) { // --> set lower Temp
+        setTemp -= 0.01;
+        lcd.print("down ");
+      } else if (Button_up.getState()) { // --> set upper Temp
+        setTemp += 0.01;
+        lcd.print("up   ");
+      } else if (Button_cancel.getState()) { // --> Mainmenu
+        priormenu = menutitle;
+        menutitle = 0;
+        lcd.print("clear");
+      } else {
+        lcd.print("void ");
+      }
+      break;
 
     // case 3:  // confirm
     //   LCDbuildConfirm();
