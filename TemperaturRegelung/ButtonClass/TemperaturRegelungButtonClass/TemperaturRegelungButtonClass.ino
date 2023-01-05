@@ -134,6 +134,7 @@ void setup() {
   pinMode(SensorPin, INPUT);
   pinMode(PowerPin, OUTPUT);
   pinMode(PowerPin, LOW);
+  pinMode(LED_BUILTIN, OUTPUT);
 
   TimeOfLastInput = millis();  // initiallize time
 
@@ -194,6 +195,7 @@ void LCDbuildMain(void) {
   lcd.print("C ");
 
   lcd.setCursor(14,1);
+  lcd.print(Temperatur, 1);
   lcd.print((char)223);
   lcd.print("C ");
 }
@@ -202,6 +204,14 @@ void LCDbuildMain(void) {
 void LCDupdateMain(void) {
   bool prevState;
   float prevTemp;
+
+  
+  lcd.setCursor(8,0);
+  if (controlerstate) {
+    lcd.print("      on");
+  } else {
+    lcd.print("starten?");
+  }
 
   if (prevState != PowerState) {
     prevState = PowerState;
@@ -214,10 +224,12 @@ void LCDupdateMain(void) {
   }
 
   if (abs(Temperatur - prevTemp) >= 0.1) {
+    lcd.setCursor(10, 1);
     prevTemp = Temperatur;
-    lcd.print(" ");
     lcd.print(Temperatur, 1);
-  }
+    lcd.print((char)223);
+    lcd.print("C");
+  } 
 }
 
 
@@ -288,24 +300,24 @@ void loop() {
         setTemp_Off = Temp_Off;
         setTemp_On = Temp_On;
       } else if (TimeNow - menu_entry_time > 1000) {
-        lcd.setCursor(10,0);
+        LCDupdateMain();
+        lcd.setCursor(8,0);
         if (Button_ok.getState()) { // --> Mainmenu
-          controlerstate = true;
-          lcd.print("ok   ");
+          controlerstate = 1;
+          //lcd.print("ok   ");
         } else if (Button_down.getState()) { // --> set lower Temp
           menutitle = 2;
-          lcd.print("down ");
+          //lcd.print("down ");
         } else if (Button_up.getState()) { // --> set upper Temp
           menutitle = 1;
-          lcd.print("up   ");
+          //lcd.print("up   ");
         } else if (Button_cancel.getState()) { // --> Mainmenu
-          controlerstate = false;
-          lcd.print("clear");
-        } else {
-          lcd.print("void ");
-        }
+          controlerstate = 0;
+          //lcd.print("clear");
+        } //else {
+          //lcd.print("void ");
+        //}
       }
-      LCDupdateMain();
     break;
 
 
@@ -321,19 +333,19 @@ void loop() {
         if (Button_ok.getState()) { // --> Mainmenu
           priormenu = menutitle;
           menutitle = 3;
-          lcd.print("ok   ");
+          //lcd.print("ok   ");
         } else if (Button_down.getState()) { // --> set lower Temp
           setTemp_Off -= 0.01;
-          lcd.print("down ");
+          //lcd.print("down ");
         } else if (Button_up.getState()) { // --> set upper Temp
           setTemp_Off += 0.01;
-          lcd.print("up   ");
+          //lcd.print("up   ");
         } else if (Button_cancel.getState()) { // --> Mainmenu
           priormenu = menutitle;
           menutitle = 0;
-          lcd.print("clear");
-        } else {
-          lcd.print("void ");
+        //   lcd.print("clear");
+        // } else {
+        //   lcd.print("void ");
         }
       }
     break;
@@ -350,20 +362,20 @@ void loop() {
         if (Button_ok.getState()) { // --> Mainmenu
           priormenu = menutitle;
           menutitle = 3;
-          lcd.print("ok   ");
+          //lcd.print("ok   ");
         } else if (Button_down.getState()) { // --> set lower Temp
           setTemp_On -= 0.01;
-          lcd.print("down ");
+          //lcd.print("down ");
         } else if (Button_up.getState()) { // --> set upper Temp
           setTemp_On += 0.01;
-          lcd.print("up   ");
+          //lcd.print("up   ");
         } else if (Button_cancel.getState()) { // --> Mainmenu
           priormenu = menutitle;
           menutitle = 0;
-          lcd.print("clear");
-        } else {
-          lcd.print("void ");
-        }
+          //lcd.print("clear");
+        } //else {
+          //lcd.print("void ");
+        //}
       }
     break;
 
@@ -380,17 +392,17 @@ void loop() {
           Temp_On = setTemp_On;
           priormenu = menutitle;
           menutitle = 0;
-          lcd.print("ok   ");
-        } else if (Button_down.getState()) { // --> x
-          lcd.print("down ");
-        } else if (Button_up.getState()) { // --> x
-          lcd.print("up   ");
+          //lcd.print("ok   ");
+        //} else if (Button_down.getState()) { // --> x
+          //lcd.print("down ");
+        //} else if (Button_up.getState()) { // --> x
+          //lcd.print("up   ");
         } else if (Button_cancel.getState()) { // --> Mainmenu
           priormenu = menutitle;
           menutitle = 0;
-          lcd.print("clear");
-        } else {
-          lcd.print("void ");
+          //lcd.print("clear");
+        // } else {
+        //   lcd.print("void ");
         }
       }
     break;
@@ -404,18 +416,23 @@ void loop() {
 
   lcdBacklight();
 
-  Temp_Off = constrain(Temp_Off, 12, 50);
+  setTemp_Off = constrain(Temp_Off, 12, 50);
+  setTemp_Off = constrain(setTemp_On, 12, 50);
 
   Temperatur = 23; // Messung();
 
   // Heitzung steuern
-  if (Temperatur > Temp_Off) {  // Ausschalten
+  if (controlerstate) {
+    if (Temperatur > Temp_Off) {  // Ausschalten
+      PowerState = 0;
+    } else if (Temperatur < Temp_On) {  // Einschalten
+      if (PowerState == 0) { Cyclen++; }
+      PowerState = 1;
+    } 
+  } else {
     PowerState = 0;
-  } else if (Temperatur < Temp_On) {  // Einschalten
-    if (PowerState == 0) { Cyclen++; }
-    PowerState = 1;
   }
-
+  
   Heater(PowerState);
 
   //TimeToString(TimeNow);
