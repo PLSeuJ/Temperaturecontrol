@@ -46,20 +46,19 @@ float setTemp_On = Temp_On;
 // Zeit
 unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek
 unsigned long TimeNow;
-unsigned long entry_time;                   // when was the menuframe entered?
+unsigned long menu_entry_time;              // when was the menuframe entered?
 unsigned long TimePrev = -9999;             // force imediate measurenment
 unsigned long TimeOfLastInput;              // global variabel to keep trak of last action
-const unsigned int DisplayStandBy = 30000;  //
+const unsigned int DisplayStandBy = 30000;  // turn of backgroundlight after 30 sek * 1000ms/sek
 
 //misc
 char timearray[12];        // here runtime is saved in format dd:hh:mm:ss
 unsigned long Cyclen = 0;  // Anzahl der Einschaltvorgänge
 
 //menu related variables
-int lastframe = 999;
-int menutitle = 0;
-int priormenu = 999;
-
+int lastframe = 999;  // frame index to togle setup and update functions in menu appropreatly
+int menutitle = 0;  // current menu index
+int priormenu = 999;  // prior menu frame index
 
 
 class Button {
@@ -275,33 +274,38 @@ void LCDbuildConfirm() {
 
 // Programm ---------------------------------------------------
 void loop() {
+  Button_ok.update();
+  Button_up.update();
+  Button_down.update();
+  Button_cancel.update();
+
   switch (menutitle) {
     case 0:  // mainmenu
       if (lastframe != menutitle) {
         LCDbuildMain();
         lastframe = menutitle;
-        entry_time = millis();
+        menu_entry_time = millis();
         setTemp_Off = Temp_Off;
         setTemp_On = Temp_On;
+      } else if (TimeNow - menu_entry_time > 1000) {
+        lcd.setCursor(10,0);
+        if (Button_ok.getState()) { // --> Mainmenu
+          controlerstate = true;
+          lcd.print("ok   ");
+        } else if (Button_down.getState()) { // --> set lower Temp
+          menutitle = 2;
+          lcd.print("down ");
+        } else if (Button_up.getState()) { // --> set upper Temp
+          menutitle = 1;
+          lcd.print("up   ");
+        } else if (Button_cancel.getState()) { // --> Mainmenu
+          controlerstate = false;
+          lcd.print("clear");
+        } else {
+          lcd.print("void ");
+        }
       }
       LCDupdateMain();
-      lcd.setCursor(10,0);
-
-    if (Button_ok.getState()) { // --> Mainmenu
-      controlerstate = true;
-      lcd.print("ok   ");
-    } else if (Button_down.getState()) { // --> set lower Temp
-      menutitle = 2;
-      lcd.print("down ");
-    } else if (Button_up.getState()) { // --> set upper Temp
-      menutitle = 1;
-      lcd.print("up   ");
-    } else if (Button_cancel.getState()) { // --> Mainmenu
-      controlerstate = false;
-      lcd.print("clear");
-    } else {
-      lcd.print("void ");
-    }
     break;
 
 
@@ -309,91 +313,91 @@ void loop() {
       if (lastframe != menutitle) {
         LCDbuildSetTemp(0);
         lastframe = menutitle;
-        entry_time = millis();
-      } else {
+        menu_entry_time = millis();
+      } else if (TimeNow - menu_entry_time > 1000) {
         LCDupdateSetTemp(0);
-      }
 
-
-      lcd.setCursor(10,0);
-      if (Button_ok.getState()) { // --> Mainmenu
-        priormenu = menutitle;
-        menutitle = 3;
-        lcd.print("ok   ");
-      } else if (Button_down.getState()) { // --> set lower Temp
-        setTemp_Off -= 0.01;
-        lcd.print("down ");
-      } else if (Button_up.getState()) { // --> set upper Temp
-        setTemp_Off += 0.01;
-        lcd.print("up   ");
-      } else if (Button_cancel.getState()) { // --> Mainmenu
-        priormenu = menutitle;
-        menutitle = 0;
-        lcd.print("clear");
-      } else {
-        lcd.print("void ");
+        lcd.setCursor(10,0);
+        if (Button_ok.getState()) { // --> Mainmenu
+          priormenu = menutitle;
+          menutitle = 3;
+          lcd.print("ok   ");
+        } else if (Button_down.getState()) { // --> set lower Temp
+          setTemp_Off -= 0.01;
+          lcd.print("down ");
+        } else if (Button_up.getState()) { // --> set upper Temp
+          setTemp_Off += 0.01;
+          lcd.print("up   ");
+        } else if (Button_cancel.getState()) { // --> Mainmenu
+          priormenu = menutitle;
+          menutitle = 0;
+          lcd.print("clear");
+        } else {
+          lcd.print("void ");
+        }
       }
-      break;
+    break;
 
     case 2:  // Set Lower Temperature
       if (lastframe != menutitle) {
         LCDbuildSetTemp(1);
         lastframe = menutitle;
-        entry_time = millis();
-      } else {
+        menu_entry_time = millis();
+      } else if (TimeNow - menu_entry_time > 1000) {
         LCDupdateSetTemp(1);
-      }
-      
 
-      lcd.setCursor(10,0);
-      if (Button_ok.getState()) { // --> Mainmenu
-        priormenu = menutitle;
-        menutitle = 3;
-        lcd.print("ok   ");
-      } else if (Button_down.getState()) { // --> set lower Temp
-        setTemp_On -= 0.01;
-        lcd.print("down ");
-      } else if (Button_up.getState()) { // --> set upper Temp
-        setTemp_On += 0.01;
-        lcd.print("up   ");
-      } else if (Button_cancel.getState()) { // --> Mainmenu
-        priormenu = menutitle;
-        menutitle = 0;
-        lcd.print("clear");
-      } else {
-        lcd.print("void ");
+        lcd.setCursor(10,0);
+        if (Button_ok.getState()) { // --> Mainmenu
+          priormenu = menutitle;
+          menutitle = 3;
+          lcd.print("ok   ");
+        } else if (Button_down.getState()) { // --> set lower Temp
+          setTemp_On -= 0.01;
+          lcd.print("down ");
+        } else if (Button_up.getState()) { // --> set upper Temp
+          setTemp_On += 0.01;
+          lcd.print("up   ");
+        } else if (Button_cancel.getState()) { // --> Mainmenu
+          priormenu = menutitle;
+          menutitle = 0;
+          lcd.print("clear");
+        } else {
+          lcd.print("void ");
+        }
       }
-      break;
+    break;
 
 
     case 3:  // confirm
       if (lastframe != menutitle) {
         LCDbuildConfirm();
         lastframe = menutitle;
-        entry_time = millis();
+        menu_entry_time = millis();
+      } else if (TimeNow - menu_entry_time > 1000) {
+        lcd.setCursor(10,0);
+        if (Button_ok.getState()) {  // --> Mainmenu
+          Temp_Off = setTemp_Off;
+          Temp_On = setTemp_On;
+          priormenu = menutitle;
+          menutitle = 0;
+          lcd.print("ok   ");
+        } else if (Button_down.getState()) { // --> x
+          lcd.print("down ");
+        } else if (Button_up.getState()) { // --> x
+          lcd.print("up   ");
+        } else if (Button_cancel.getState()) { // --> Mainmenu
+          priormenu = menutitle;
+          menutitle = 0;
+          lcd.print("clear");
+        } else {
+          lcd.print("void ");
+        }
       }
+    break;
 
-      lcd.setCursor(10,0);
-      if (Button_ok.getState()) {  // --> Mainmenu
-        Temp_Off = setTemp_Off;
-        Temp_On = setTemp_On;
-        priormenu = menutitle;
-        menutitle = 0;
-        lcd.print("ok   ");
-      } else if (Button_down.getState()) { // --> x
-        lcd.print("down ");
-      } else if (Button_up.getState()) { // --> x
-        lcd.print("up   ");
-      } else if (Button_cancel.getState()) { // --> Mainmenu
-        priormenu = menutitle;
-        menutitle = 0;
-        lcd.print("clear");
-      } else {
-        lcd.print("void ");
-      }
-      break;
     default:
       menutitle = 0;
+    break;
   }
 
   TimeNow = millis();  // update time AFTER buttons, so last event is alsways prior to now.
