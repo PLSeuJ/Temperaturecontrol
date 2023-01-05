@@ -1,8 +1,8 @@
 /*-------------------------------------------------------------------------
 Temperatur Regelung Menü
-Version: V0.9
+Version: V1.0.0
 created: 29.01.2021
-last edit: 23.12.2022
+last edit: 05.01.2023
 author: Jonathan Schumann
 mail: jonathanschumann@gmx.de
 
@@ -15,7 +15,7 @@ Hier ist die Testumgebung für die Menü-Programmierung
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[8] = "V0.9.00";
+const char VersNr[8] = "V0.9.0";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
@@ -39,8 +39,8 @@ float MesswertTemperatur = 0;  // Rohwert für Temperatur
 float Temperatur = 0;          // Temperatur in °C
 float Temp_On = 28;            // Einschalttemperatur für Lampe in °C
 float Temp_Off = 30;           // Ausschalttemperatur für Lampe in °C
-float setTemp_Off = Temp_Off;
-float setTemp_On = Temp_On;
+float setTemp_Off;
+float setTemp_On;
 // Temp_Off = Temp_Soll + Temp_Delta;  // <--Wenn Wärmeübergang bekannt kann so der Aufheitzvorgang beschleunigt werden
 
 // Zeit
@@ -48,6 +48,7 @@ unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek
 unsigned long TimeNow;
 unsigned long menu_entry_time;              // when was the menuframe entered?
 unsigned long TimePrev = -9999;             // force imediate measurenment
+unsigned long TimeOfLastMeasurnment = 0;
 unsigned long TimeOfLastInput;              // global variabel to keep trak of last action
 const unsigned int DisplayStandBy = 30000;  // turn of backgroundlight after 30 sek * 1000ms/sek
 
@@ -120,29 +121,6 @@ void lcdBacklight(void)
   }
 }
 
-//Programm start
-void setup() {
-  Serial.begin(19200);  // Serielle Schnittstelle starten für einfacheres testen
-
-  sensor.begin();  // Temperatursensor konfigurieren
-
-  lcd.begin();      // startet den LCD Bidschirm
-  lcd.clear();      // Bildschirmausgaben löschen und Curor auf 0,0 setzen
-  lcd.backlight();  // Hintergrundbeleuchtung einschalten
-  lcd.print(VersNr);
-
-  pinMode(SensorPin, INPUT);
-  pinMode(PowerPin, OUTPUT);
-  pinMode(PowerPin, LOW);
-  pinMode(LED_BUILTIN, OUTPUT);
-
-  TimeOfLastInput = millis();  // initiallize time
-
-  delay(1000);
-  lcd.clear();  // Bildschirmausgaben löschen und Curor auf 0,0 setzen
-}
-
-
 
 float Messung(void)
 /* Misst Temperatur und gibt Temperatur in °C zurück. */
@@ -155,13 +133,6 @@ float Messung(void)
 
 void Heater(bool PowerState) {
   pinMode(PowerPin, PowerState);
-
-  // lcd.setCursor(10, 1);
-  // if (PowerState) {
-  //   lcd.print("on ");
-  // } else {
-  //   lcd.print("off");
-  // }
 }
 
 
@@ -194,7 +165,7 @@ void LCDbuildMain(void) {
   lcd.print((char)223);
   lcd.print("C ");
 
-  lcd.setCursor(14,1);
+  lcd.setCursor(10,1);
   lcd.print(Temperatur, 1);
   lcd.print((char)223);
   lcd.print("C ");
@@ -284,6 +255,30 @@ void LCDbuildConfirm() {
 }
 
 
+//Programm start
+void setup() {
+  Serial.begin(19200);  // Serielle Schnittstelle starten für einfacheres testen
+
+  sensor.begin();  // Temperatursensor konfigurieren
+
+  lcd.begin();      // startet den LCD Bidschirm
+  lcd.clear();      // Bildschirmausgaben löschen und Curor auf 0,0 setzen
+  lcd.backlight();  // Hintergrundbeleuchtung einschalten
+  lcd.print(VersNr);
+
+  pinMode(SensorPin, INPUT);
+  pinMode(PowerPin, OUTPUT);
+  pinMode(PowerPin, LOW);
+  pinMode(LED_BUILTIN, OUTPUT);
+
+  TimeOfLastInput = millis();  // initiallize time
+  Temperatur = Messung();
+
+  delay(1000);
+  lcd.clear();  // Bildschirmausgaben löschen und Curor auf 0,0 setzen
+}
+
+
 // Programm ---------------------------------------------------
 void loop() {
   Button_ok.update();
@@ -299,7 +294,7 @@ void loop() {
         menu_entry_time = millis();
         setTemp_Off = Temp_Off;
         setTemp_On = Temp_On;
-      } else if (TimeNow - menu_entry_time > 1000) {
+      } else if (TimeNow - menu_entry_time > 500) {
         LCDupdateMain();
         lcd.setCursor(8,0);
         if (Button_ok.getState()) { // --> Mainmenu
@@ -326,9 +321,8 @@ void loop() {
         LCDbuildSetTemp(0);
         lastframe = menutitle;
         menu_entry_time = millis();
-      } else if (TimeNow - menu_entry_time > 1000) {
+      } else if (TimeNow - menu_entry_time > 500) {
         LCDupdateSetTemp(0);
-
         lcd.setCursor(10,0);
         if (Button_ok.getState()) { // --> Mainmenu
           priormenu = menutitle;
@@ -355,9 +349,8 @@ void loop() {
         LCDbuildSetTemp(1);
         lastframe = menutitle;
         menu_entry_time = millis();
-      } else if (TimeNow - menu_entry_time > 1000) {
+      } else if (TimeNow - menu_entry_time > 500) {
         LCDupdateSetTemp(1);
-
         lcd.setCursor(10,0);
         if (Button_ok.getState()) { // --> Mainmenu
           priormenu = menutitle;
@@ -385,9 +378,10 @@ void loop() {
         LCDbuildConfirm();
         lastframe = menutitle;
         menu_entry_time = millis();
-      } else if (TimeNow - menu_entry_time > 1000) {
+      } else if (TimeNow - menu_entry_time > 500) {
         lcd.setCursor(10,0);
         if (Button_ok.getState()) {  // --> Mainmenu
+          controlerstate = 0;
           Temp_Off = setTemp_Off;
           Temp_On = setTemp_On;
           priormenu = menutitle;
@@ -416,10 +410,14 @@ void loop() {
 
   lcdBacklight();
 
-  setTemp_Off = constrain(Temp_Off, 12, 50);
+  setTemp_Off = constrain(setTemp_Off, 12, 50);
   setTemp_Off = constrain(setTemp_On, 12, 50);
 
-  Temperatur = 23; // Messung();
+  if (TimeNow - TimeOfLastMeasurnment > Messintervall) {
+    TimeOfLastMeasurnment = TimeNow;
+    Temperatur = Messung();
+  }
+
 
   // Heitzung steuern
   if (controlerstate) {
