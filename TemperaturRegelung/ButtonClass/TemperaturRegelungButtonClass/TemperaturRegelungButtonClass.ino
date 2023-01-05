@@ -229,24 +229,46 @@ void LCDbuildConfirm() {
 void LCDbuildSetTemp(float T1, float T2, int select) {
   lcd.clear();
   lcd.print(" ");
-  lcd.print(Temp_Off, 1);
+  lcd.print(T1, 1);
   lcd.print((char)223);
   lcd.print("C");
 
   lcd.setCursor(1, 1);
-  lcd.print(Temp_On, 1);
+  lcd.print(T2, 1);
   lcd.print((char)223);
   lcd.print("C ");
 
   lcd.setCursor(0, select);
   lcd.print(">");
+  delay(100);  // avoid direct button response
 }
 
 
-void LCDbuildSetLower() {
-  lcd.clear();
-  lcd.print("Set Temp lower");
-}
+void LCDupdateSetTemp(float Tset, float T2, bool select) {
+  lcd.setCursor(1, (int)select);
+  lcd.print(Tset, 1);
+
+  // check if limit is exeeded
+  lcd.setCursor(1, (int)!select);
+  switch (select) {
+    case 0: 
+      if(Tset < T2) {
+        lcd.print(Tset, 1);
+      } else {
+        lcd.print(T2, 1);
+      } 
+      break;
+    case 1: 
+      if(Tset > T2) {
+        lcd.print(Tset, 1);
+      } else {
+        lcd.print(T2, 1);
+      } 
+      break;
+  }
+
+  }
+
 
 // Programm ---------------------------------------------------
 void loop() {
@@ -282,22 +304,27 @@ void loop() {
 
 
     case 1:  // Set Upper Temperatur
-      LCDbuildSetTemp(setTemp, Temp_Off, 1);
+      if (lastframe != menutitle) {
+        LCDbuildSetTemp(setTemp, Temp_On, 0);
+        lastframe = menutitle;
+      }
+      
+      LCDupdateSetTemp(setTemp, Temp_On, 0);
 
       lcd.setCursor(10,0);
       if (Button_ok.getState()) { // --> Mainmenu
-        lastframe = menutitle;
+        priormenu = menutitle;
         menutitle = 3;
         lcd.print("ok   ");
       } else if (Button_down.getState()) { // --> set lower Temp
-        setTemp -= 0.1;
+        setTemp -= 0.01;
         lcd.print("down ");
       } else if (Button_up.getState()) { // --> set upper Temp
         menutitle = 1;
-        setTemp += 0.1;
+        setTemp += 0.01;
         lcd.print("up   ");
       } else if (Button_cancel.getState()) { // --> Mainmenu
-        lastframe = menutitle;
+        priormenu = menutitle;
         menutitle = 0;
         lcd.print("clear");
       } else {
