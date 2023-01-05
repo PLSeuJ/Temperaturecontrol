@@ -269,6 +269,21 @@ void LCDupdateSetTemp(float Tset, float T2, bool select) {
 }
 
 
+void LCDbuildConfirm(float T1, float T2) {
+  lcd.clear();
+  lcd.print("OFF: ");
+  lcd.print(T1,1);
+  lcd.print((char)223);
+  lcd.print("C ?");
+
+  lcd.setCursor(0, 1);
+  lcd.print(" ON: ");
+  lcd.print(T2, 1);
+  lcd.print((char)223);
+  lcd.print("C ?");
+}
+
+
 // Programm ---------------------------------------------------
 void loop() {
   switch (menutitle) {
@@ -356,16 +371,32 @@ void loop() {
       }
       break;
 
-    // case 3:  // confirm
-    //   LCDbuildConfirm();
-    //   lastframe = menutitle;
 
-    //   if (Button_ok.getState()) menutitle = 0;  // --> Mainmenu
-    //   if (Button_down.getState())
-    //     ;  // --> x
-    //   if (Button_up.getState())
-    //     ;                                           // --> x
-    //   if (Button_cancel.getState()) menutitle = 0;  // --> Mainmenu
+    case 3:  // confirm
+      if (lastframe != menutitle) {
+        LCDbuildConfirm(setTemp_Off, setTemp_On);
+        lastframe = menutitle;
+      }
+      delay(1000);  // avoid direct button response
+      lcd.setCursor(10,0);
+      if (Button_ok.getState()) {  // --> Mainmenu
+        Temp_Off = setTemp_Off;
+        Temp_On = setTemp_On;
+        priormenu = menutitle;
+        menutitle = 0;
+        lcd.print("ok   ");
+      } else if (Button_down.getState()) { // --> x
+        lcd.print("down ");
+      } else if (Button_up.getState()) { // --> x
+        lcd.print("up   ");
+      } else if (Button_cancel.getState()) { // --> Mainmenu
+        priormenu = menutitle;
+        menutitle = 0;
+        lcd.print("clear");
+      } else {
+        lcd.print("void ");
+      }
+      break;
     default:
       menutitle = 0;
   }
