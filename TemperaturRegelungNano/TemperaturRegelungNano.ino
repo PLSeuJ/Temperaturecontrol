@@ -41,6 +41,7 @@ const char VersNr[8] = "V1.0.02";
 const int ONE_WIRE_BUS = 2;
 const int SensorPin = 2;  // Digital Pin für digitales Eingangssignal
 const int PowerPin = 7;   // Digital Pin für digitales Ausgangssignal
+const int LED_BUILDIN = 13;  // This is the buildin led pin too
 //const int VanClockPin = 9;
 //const int VanControlPin = 10;
 
@@ -157,6 +158,7 @@ void setup() {
   pinMode(SensorPin, INPUT);
   pinMode(PowerPin, OUTPUT);
   pinMode(PowerPin, LOW);
+  pinMode(LED_BUILDIN, OUTPUT);
 
   TimeOfLastInput = millis();  // initiallize time
 
@@ -445,7 +447,7 @@ void loop() {
 
   // Heitzung steuern
   if (controlerstate) {
-    // pinMode(LED_BUILDIN, HIGH);
+    digitalWrite(LED_BUILDIN, HIGH);
     if (Temperatur > Temp_Off) {  // Ausschalten
       PowerState = 0;
     } else if (Temperatur < Temp_On) {  // Einschalten
@@ -454,7 +456,7 @@ void loop() {
     }
   } else {
     PowerState = 0;
-    // pinMode(LED_BUILDIN, LOW);
+    digitalWrite(LED_BUILDIN, LOW);
   }
 
   Heater(PowerState);
