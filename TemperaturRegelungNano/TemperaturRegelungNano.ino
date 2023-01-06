@@ -1,21 +1,41 @@
 /*-------------------------------------------------------------------------
-Temperatur Regelung Menü
-Version: V1.0.0
+Temperatur Regelung 
+Version: V1.0.01
 created: 29.01.2021
-last edit: 23.12.2022
+last edit: 06.01.2023
 author: Jonathan Schumann
-mail: jonathanschumann@gmx.de
+mail: jonathanschumann@posteo.de
+
+for an english version contact the author please.
+
+Das Sketch ist für einen Arduino Nano geschrieben.
+
+Das Sketch lässt über eine Solltemperatur über Knöpfe und das LC-Display 
+einstellen, die dann mit einer Heitzung versucht wird zu erreichen. Mit 
+den Daten vom Thermometer werden die Ein- und Ausschaltvorgänge gesteuert.
+
+Anschluss der Hardware:
+Neben den definierten Pins, müssen das Relais und die Heitzlampe seperat 
+mit Strom versorgt werden. Das Thermometer ist mit Ground und 5V zu 
+versorgen. Der Daten Pin des Thermometers (Pin 2) ist über 5 KOhm mit 
+5V zu verbinden. - Denn solange es sich um das DS18xx handelt gilt:
+  "You will need a pull-up resistor of about 5 KOhm between the 1-Wire 
+  data line and your 5V power."
+
+Das I2C-Terminal des LC-Display ist ebenfalls mit Ground und 5V, sowie 
+A4 mit SDA (data) und A5 mit SCL (clock) zu verbinden.
 
 
-Hier ist die Testumgebung für die Menü-Programmierung
--------------------------------------------------------------------------
-*/
+Für weitere Informationen bitte das README lesen.
+
+Der Verkauf des Programms oder Teile von diesem ist nicht gestattet.
+-----------------------------------------------------------------------*/
 #include <OneWire.h>
 #include <LCD_I2C.h>
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[8] = "V1.0.00";
+const char VersNr[8] = "V1.0.01";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
@@ -31,7 +51,7 @@ DallasTemperature sensor(&oneWire);
 
 // Globale Variablen
 // Logic Variables
-bool controlerstate = 0;  // ON/OFF toggle
+bool controlerstate = false;  // ON/OFF toggle
 bool PowerState = 0;  // relais power on/off internal variable
 
 // Temperatur
@@ -50,6 +70,7 @@ unsigned long menu_entry_time;              // when was the menuframe entered?
 unsigned long TimePrev = -9999;             // force imediate measurenment
 unsigned long TimeOfLastInput;              // global variabel to keep trak of last action
 const unsigned int DisplayStandBy = 30000;  // turn of backgroundlight after 30 sek * 1000ms/sek
+const unsigned int MenuEntryDelay = 800; // time buttons dont work after new menuframe
 
 //misc
 char timearray[12];        // here runtime is saved in format dd:hh:mm:ss
@@ -104,10 +125,10 @@ public:
 };  // don't forget the semicolon at the end of the class
 
 
-Button Button_up(4);
-Button Button_down(5);
-Button Button_ok(6);
-Button Button_cancel(3);
+Button Button_up(4);  // 3
+Button Button_down(5);  // 4
+Button Button_ok(6);  // 6
+Button Button_cancel(3);  // 5
 
 
 void lcdBacklight(void)
@@ -203,22 +224,23 @@ void LCDupdateMain(void) {
   bool prevState;
   float prevTemp;
 
+  lcd.setCursor(13, 0);
+  if (controlerstate) {
+    lcd.print(" ON");    
+  } else {
+    lcd.print("OFF");
+  }
+  
+  lcd.setCursor(8, 1);    
   if (prevState != PowerState) {
     prevState = PowerState;
-    if (controlerstate) {
-      lcd.setCursor(13, 0);
-      lcd.print(" ON");
-      lcd.setCursor(8, 1);
       if (PowerState) {
         lcd.print("^");
       } else {
         lcd.print("v");
       }
-    } else {
-      lcd.print(" ");
-      lcd.setCursor(13, 0);
-      lcd.print("OFF");
-    }
+  } else if (!controlerstate) {
+    lcd.print(" ");
   }
 
   lcd.setCursor(10, 1);
@@ -297,7 +319,8 @@ void loop() {
         menu_entry_time = millis();
         setTemp_Off = Temp_Off;
         setTemp_On = Temp_On;
-      } else if (TimeNow - menu_entry_time > 1000) {
+        LCDupdateMain();
+      } else if (TimeNow - menu_entry_time > MenuEntryDelay) {
         lcd.setCursor(10,0);
         if (Button_ok.getState()) { // --> Mainmenu
           controlerstate = true;
@@ -324,7 +347,7 @@ void loop() {
         LCDbuildSetTemp(0);
         lastframe = menutitle;
         menu_entry_time = millis();
-      } else if (TimeNow - menu_entry_time > 1000) {
+      } else if (TimeNow - menu_entry_time > MenuEntryDelay) {
         LCDupdateSetTemp(0);
 
         lcd.setCursor(10,0);
@@ -353,7 +376,7 @@ void loop() {
         LCDbuildSetTemp(1);
         lastframe = menutitle;
         menu_entry_time = millis();
-      } else if (TimeNow - menu_entry_time > 1000) {
+      } else if (TimeNow - menu_entry_time > MenuEntryDelay) {
         LCDupdateSetTemp(1);
 
         lcd.setCursor(10,0);
@@ -383,7 +406,7 @@ void loop() {
         LCDbuildConfirm();
         lastframe = menutitle;
         menu_entry_time = millis();
-      } else if (TimeNow - menu_entry_time > 1000) {
+      } else if (TimeNow - menu_entry_time > MenuEntryDelay) {
         lcd.setCursor(10,0);
         if (Button_ok.getState()) {  // --> Mainmenu
           Temp_Off = setTemp_Off;
@@ -420,6 +443,7 @@ void loop() {
 
   // Heitzung steuern
   if (controlerstate) {
+    // pinMode(LED_BUILDIN, HIGH);
     if (Temperatur > Temp_Off) {  // Ausschalten
       PowerState = 0;
     } else if (Temperatur < Temp_On) {  // Einschalten
@@ -428,6 +452,7 @@ void loop() {
     }
   } else {
     PowerState = 0;
+    // pinMode(LED_BUILDIN, LOW);
   }
 
   Heater(PowerState);
