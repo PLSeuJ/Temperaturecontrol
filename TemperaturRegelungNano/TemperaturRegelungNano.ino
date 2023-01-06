@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------
 Temperatur Regelung 
-Version: V1.0.02
+Version: V1.0.03
 created: 29.01.2021
 last edit: 06.01.2023
 author: Jonathan Schumann
@@ -35,7 +35,7 @@ Der Verkauf des Programms oder Teile von diesem ist nicht gestattet.
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[8] = "V1.0.02";
+const char VersNr[8] = "V1.0.03";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
@@ -432,6 +432,19 @@ void loop() {
       }
     break;
 
+    case 4:  // bad temperatur
+      controlerstate = 0;
+      PowerState = 0;
+      if (lastframe != menutitle) {
+        lcd.clear();
+        lcd.print("bad Temperatur");
+        lcd.setCursor(1, 	0);
+        lcd.print("try press reset")
+        lastframe = menutitle;
+        menu_entry_time = millis();
+      }
+    break;
+
     default:
       menutitle = 0;
     break;
@@ -444,6 +457,11 @@ void loop() {
   Temp_Off = constrain(Temp_Off, 12, 50);
 
   Temperatur = Messung();
+  if ((Temperatur < 0) || (Temperatur > 50)) {
+    controlerstate = 0;
+    PowerState = 0;
+    menutitle = 4;
+  }
 
   // Heitzung steuern
   if (controlerstate) {
