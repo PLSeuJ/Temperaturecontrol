@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------
 Temperatur Regelung 
-Version: V1.0.01
+Version: V1.0.02
 created: 29.01.2021
 last edit: 06.01.2023
 author: Jonathan Schumann
@@ -35,7 +35,7 @@ Der Verkauf des Programms oder Teile von diesem ist nicht gestattet.
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[8] = "V1.0.01";
+const char VersNr[8] = "V1.0.02";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
@@ -69,6 +69,7 @@ unsigned long TimeNow;
 unsigned long menu_entry_time;              // when was the menuframe entered?
 unsigned long TimePrev = -9999;             // force imediate measurenment
 unsigned long TimeOfLastInput;              // global variabel to keep trak of last action
+unsigned long TimeBacklight;              // global variabel to avoid input on black screen
 const unsigned int DisplayStandBy = 30000;  // turn of backgroundlight after 30 sek * 1000ms/sek
 const unsigned int MenuEntryDelay = 800; // time buttons dont work after new menuframe
 
@@ -138,6 +139,7 @@ void lcdBacklight(void)
     lcd.noBacklight();
   } else {
     lcd.backlight();
+    TimeBacklight = TimeNow;
   }
 }
 
@@ -320,7 +322,7 @@ void loop() {
         setTemp_Off = Temp_Off;
         setTemp_On = Temp_On;
         LCDupdateMain();
-      } else if (TimeNow - menu_entry_time > MenuEntryDelay) {
+      } else if ((TimeNow - menu_entry_time > MenuEntryDelay) && (TimeNow - TimeBacklight < MenuEntryDelay)) {
         lcd.setCursor(10,0);
         if (Button_ok.getState()) { // --> Mainmenu
           controlerstate = true;
