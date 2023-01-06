@@ -205,11 +205,19 @@ void LCDupdateMain(void) {
 
   if (prevState != PowerState) {
     prevState = PowerState;
-    lcd.setCursor(8, 1);
-    if (PowerState) {
-      lcd.print("^");
+    if (controlerstate) {
+      lcd.setCursor(13, 0);
+      lcd.print(" ON");
+      lcd.setCursor(8, 1);
+      if (PowerState) {
+        lcd.print("^");
+      } else {
+        lcd.print("v");
+      }
     } else {
-      lcd.print("v");
+      lcd.print(" ");
+      lcd.setCursor(13, 0);
+      lcd.print("OFF");
     }
   }
 
