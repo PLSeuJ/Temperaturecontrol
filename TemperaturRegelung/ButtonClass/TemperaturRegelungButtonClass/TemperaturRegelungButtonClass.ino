@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------
 Temperatur Regelung Menü
-Version: V0.9
+Version: V1.0.0
 created: 29.01.2021
 last edit: 23.12.2022
 author: Jonathan Schumann
@@ -15,7 +15,7 @@ Hier ist die Testumgebung für die Menü-Programmierung
 #include <DallasTemperature.h>
 
 // Versionsnummer
-const char VersNr[8] = "V0.9.00";
+const char VersNr[8] = "V1.0.00";
 
 // Zuweisung der Anschlüsse
 const int ONE_WIRE_BUS = 2;
@@ -416,7 +416,7 @@ void loop() {
 
   Temp_Off = constrain(Temp_Off, 12, 50);
 
-  Temperatur = 23; // Messung();
+  Temperatur = Messung();
 
   // Heitzung steuern
   if (controlerstate) {
