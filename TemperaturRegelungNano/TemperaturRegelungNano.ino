@@ -66,6 +66,7 @@ float setTemp_On = Temp_On;
 
 // Zeit
 unsigned long Messintervall = 10 * 1000;  // in Sekunden x 1000ms/sek
+unsigned long lastMeasurTime = -999999;  // Time of last measurnment to avoid measurnments on every cycle and slow down menu control
 unsigned long TimeNow;
 unsigned long menu_entry_time;              // when was the menuframe entered?
 unsigned long TimePrev = -9999;             // force imediate measurenment
@@ -456,7 +457,11 @@ void loop() {
 
   Temp_Off = constrain(Temp_Off, 12, 50);
 
-  Temperatur = Messung();
+  if (TimeNow - lastMeasurTime > Messintervall) {
+    lastMeasurTime = TimeNow;
+    Temperatur = Messung();
+  }
+
   if ((Temperatur < 0) || (Temperatur > 50)) {
     controlerstate = 0;
     PowerState = 0;
