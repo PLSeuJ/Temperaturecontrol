@@ -437,8 +437,8 @@ void loop() {
       PowerState = 0;
       if (lastframe != menutitle) {
         lcd.clear();
-        lcd.print("bad Temperatur");
-        lcd.setCursor(1, 	0);
+        lcd.print("E:bad Temperatur");
+        lcd.setCursor(0, 1);
         lcd.print("try press reset");
         lastframe = menutitle;
         menu_entry_time = millis();
