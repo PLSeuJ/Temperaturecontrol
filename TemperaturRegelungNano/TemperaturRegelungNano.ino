@@ -439,7 +439,7 @@ void loop() {
         lcd.clear();
         lcd.print("bad Temperatur");
         lcd.setCursor(1, 	0);
-        lcd.print("try press reset")
+        lcd.print("try press reset");
         lastframe = menutitle;
         menu_entry_time = millis();
       }
