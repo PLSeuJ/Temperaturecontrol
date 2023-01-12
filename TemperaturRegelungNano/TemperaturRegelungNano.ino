@@ -128,10 +128,10 @@ public:
 };  // don't forget the semicolon at the end of the class
 
 
-Button Button_up(4);  // 3
-Button Button_down(5);  // 4
-Button Button_ok(6);  // 6
-Button Button_cancel(3);  // 5
+Button Button_up(3);  // 3 or 4
+Button Button_down(4);  // 4 or 5
+Button Button_ok(6);  // 6 or 6
+Button Button_cancel(5);  // 5 or 3
 
 
 void lcdBacklight(void)
